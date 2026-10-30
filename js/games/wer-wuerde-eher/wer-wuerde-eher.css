@@ -1,0 +1,482 @@
+/* Alle Regeln beginnen mit .game-wer-wuerde-eher, damit sie nur in diesem Spiel gelten. */
+
+/* Limettengrün als Akzent – im hellen Design dunkler, damit Text und Buttons lesbar bleiben */
+.game-wer-wuerde-eher {
+  --accent: #3f7d0a;
+  --accent-2: #65a30d;
+  --on-accent: #ffffff;
+  --hot: #ff4f7b;
+  --warm: #ffb020;
+  --lime: #a3e635;
+}
+
+/* Winkel für den rotierenden Neonrahmen der Fragekarte */
+@property --wwe-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .game-wer-wuerde-eher {
+    --accent: #a3e635;
+    --accent-2: #d9f99d;
+    --on-accent: #1a2e05;
+  }
+}
+:root[data-theme="dark"] .game-wer-wuerde-eher {
+  --accent: #a3e635;
+  --accent-2: #d9f99d;
+  --on-accent: #1a2e05;
+}
+
+.game-wer-wuerde-eher .wwe-small {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.game-wer-wuerde-eher .wwe-small:empty { display: none; }
+.game-wer-wuerde-eher .wwe-center { text-align: center; }
+
+.game-wer-wuerde-eher .wwe-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+  text-align: center;
+}
+
+.game-wer-wuerde-eher .wwe-title {
+  font-family: var(--font-display);
+  font-size: clamp(50px, 14vw, 74px);
+  line-height: .92;
+  letter-spacing: .02em;
+}
+.game-wer-wuerde-eher .wwe-title span { color: var(--accent); }
+
+.game-wer-wuerde-eher .wwe-lede {
+  max-width: 36ch;
+  margin-inline: auto;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ---------- Frage ---------- */
+.game-wer-wuerde-eher .wwe-question { gap: 16px; }
+
+.game-wer-wuerde-eher .wwe-card {
+  position: relative;
+  flex: 1;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 64px 24px 34px; /* oben Platz für Kategorie und Fragennummer */
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.game-wer-wuerde-eher .wwe-is-vote .wwe-card {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 18px 22px 22px;
+}
+
+.game-wer-wuerde-eher .wwe-card-head {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.game-wer-wuerde-eher .wwe-is-vote .wwe-card-head {
+  position: static;
+  margin-bottom: 8px;
+}
+
+.game-wer-wuerde-eher .wwe-category {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.game-wer-wuerde-eher .wwe-lead {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 9vw, 40px);
+  line-height: 1;
+  letter-spacing: .03em;
+  color: var(--accent);
+}
+
+.game-wer-wuerde-eher .wwe-text {
+  font-weight: 800;
+  font-size: clamp(25px, 7vw, 32px);
+  line-height: 1.22;
+  text-wrap: pretty;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+.game-wer-wuerde-eher .wwe-is-vote .wwe-text { font-size: clamp(20px, 5.6vw, 24px); }
+.game-wer-wuerde-eher .wwe-is-vote .wwe-lead { font-size: 24px; }
+
+/* Neonrahmen, der langsam um die Karte wandert */
+.game-wer-wuerde-eher .wwe-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--wwe-angle), var(--accent), var(--hot), var(--warm), var(--lime), var(--accent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: wwe-spin 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes wwe-spin { to { --wwe-angle: 360deg; } }
+
+/* Frage baut sich Wort für Wort auf */
+.game-wer-wuerde-eher .wwe-word { display: inline-block; }
+.game-wer-wuerde-eher .wwe-question:not(.wwe-is-vote) .wwe-word {
+  animation: wwe-word .45s cubic-bezier(.2, .9, .3, 1.3) backwards;
+  animation-delay: calc(var(--i) * 70ms + 180ms);
+}
+@keyframes wwe-word {
+  from { opacity: 0; transform: translateY(14px) scale(.8); filter: blur(4px); }
+}
+.game-wer-wuerde-eher .wwe-question:not(.wwe-is-vote) .wwe-lead { animation: wwe-word .5s cubic-bezier(.2, .9, .3, 1.3) backwards; }
+
+/* Schwebende Finger hinter dem Fragetext */
+.game-wer-wuerde-eher .wwe-card > .wwe-lead,
+.game-wer-wuerde-eher .wwe-card > .wwe-text {
+  position: relative;
+  z-index: 1;
+}
+.game-wer-wuerde-eher .wwe-card-head { z-index: 1; }
+.game-wer-wuerde-eher .wwe-floaters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.game-wer-wuerde-eher .wwe-is-vote .wwe-floaters { display: none; }
+.game-wer-wuerde-eher .wwe-floaters span {
+  position: absolute;
+  font-size: 34px;
+  opacity: .22;
+  animation: wwe-float 7s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -1.3s);
+}
+.game-wer-wuerde-eher .wwe-floaters span:nth-child(1) { left: 2%; top: 4%; }
+.game-wer-wuerde-eher .wwe-floaters span:nth-child(2) { right: 3%; top: 12%; }
+.game-wer-wuerde-eher .wwe-floaters span:nth-child(3) { left: 6%; top: 58%; }
+.game-wer-wuerde-eher .wwe-floaters span:nth-child(4) { right: 6%; top: 50%; }
+.game-wer-wuerde-eher .wwe-floaters span:nth-child(5) { left: 44%; bottom: 6%; }
+.game-wer-wuerde-eher .wwe-floaters span:nth-child(6) { right: 24%; bottom: 20%; }
+@keyframes wwe-float {
+  from { transform: translate(0, 0) rotate(-12deg); }
+  to { transform: translate(14px, -22px) rotate(14deg); }
+}
+
+/* Start-Knopf pulsiert einladend */
+.game-wer-wuerde-eher .wwe-go:not(:disabled) { animation: wwe-pulse 1.8s ease-in-out infinite; }
+@keyframes wwe-pulse {
+  0%, 100% { box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 35%, transparent); }
+  50% { box-shadow: 0 8px 34px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent); }
+}
+
+/* ---------- Countdown-Overlay ---------- */
+.game-wer-wuerde-eher .wwe-overlay {
+  --step: var(--hot);
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--step) 32%, #0d0a10), #07060a 70%);
+  transition: background .25s ease;
+}
+.game-wer-wuerde-eher .wwe-overlay[data-step="3"] { --step: var(--hot); }
+.game-wer-wuerde-eher .wwe-overlay[data-step="2"] { --step: var(--warm); }
+.game-wer-wuerde-eher .wwe-overlay[data-step="1"] { --step: var(--lime); }
+.game-wer-wuerde-eher .wwe-overlay[data-step="go"] { --step: var(--lime); }
+
+.game-wer-wuerde-eher .wwe-ov-rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200vmax;
+  height: 200vmax;
+  margin: -100vmax 0 0 -100vmax;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--step) 22%, transparent) 0deg 8deg, transparent 8deg 16deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0, transparent 40%);
+  mask-image: radial-gradient(circle, #000 0, transparent 40%);
+  animation: wwe-rays 10s linear infinite;
+}
+.game-wer-wuerde-eher .wwe-overlay[data-step="go"] .wwe-ov-rays { animation-duration: 3s; }
+@keyframes wwe-rays { to { transform: rotate(360deg); } }
+
+.game-wer-wuerde-eher .wwe-ov-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46vmin;
+  height: 46vmin;
+  margin: -23vmin 0 0 -23vmin;
+  border: 10px solid var(--step);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 40px var(--step), inset 0 0 40px var(--step);
+}
+
+.game-wer-wuerde-eher .wwe-ov-num {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: clamp(170px, 56vw, 320px);
+  line-height: .9;
+  letter-spacing: .02em;
+  color: #fff;
+  text-shadow: 0 0 18px var(--step), 0 0 50px var(--step), 0 0 90px var(--step);
+}
+.game-wer-wuerde-eher .wwe-overlay[data-step="go"] .wwe-ov-num {
+  font-size: clamp(96px, 30vw, 170px);
+  color: var(--step);
+  text-shadow: 0 0 20px var(--step), 0 0 60px var(--step), 4px 6px 0 #000;
+}
+.game-wer-wuerde-eher .wwe-ov-sub {
+  position: relative;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .75);
+}
+
+.game-wer-wuerde-eher .wwe-hands {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+.game-wer-wuerde-eher .wwe-hands span {
+  position: absolute;
+  left: -28px;
+  top: -30px;
+  font-size: 56px;
+  line-height: 1;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .5));
+}
+
+/* Bierregen beim Trinken (liegt über der ganzen Seite) */
+.wwe-beer-rain {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  overflow: hidden;
+  pointer-events: none;
+}
+.wwe-beer-rain span {
+  position: absolute;
+  top: 0;
+  font-size: 36px;
+}
+
+.game-wer-wuerde-eher .wwe-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+.game-wer-wuerde-eher .wwe-tally {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.game-wer-wuerde-eher .wwe-tally .chips {
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Wer trinkt? ---------- */
+.game-wer-wuerde-eher .wwe-vote {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 6px;
+}
+.game-wer-wuerde-eher .wwe-vote-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.game-wer-wuerde-eher .wwe-vote-btn {
+  position: relative;
+  animation: wwe-chip .45s cubic-bezier(.3, 1.6, .5, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 60ms + 120ms);
+  appearance: none;
+  padding: 13px 20px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .12s ease;
+}
+.game-wer-wuerde-eher .wwe-vote-btn:active { transform: scale(.96); }
+.game-wer-wuerde-eher .wwe-vote-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent), 0 8px 20px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+/* Wer gewählt ist, bekommt ein Bierglas angeheftet */
+.game-wer-wuerde-eher .wwe-vote-btn[aria-pressed="true"]::after {
+  content: '🍺';
+  position: absolute;
+  top: -14px;
+  right: -8px;
+  font-size: 22px;
+  animation: wwe-badge .5s cubic-bezier(.3, 1.8, .5, 1), wwe-wobble 1.6s ease-in-out .5s infinite;
+}
+@keyframes wwe-chip {
+  from { opacity: 0; transform: translateY(16px) scale(.6); }
+}
+@keyframes wwe-badge {
+  from { transform: scale(0) rotate(-40deg); }
+}
+@keyframes wwe-wobble {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(12deg); }
+}
+
+.game-wer-wuerde-eher .wwe-rule {
+  flex: 1;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.game-wer-wuerde-eher .wwe-rule b { color: var(--text); }
+
+/* ---------- Spielende ---------- */
+.game-wer-wuerde-eher .wwe-end {
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+.game-wer-wuerde-eher .wwe-end-title {
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(50px, 15vw, 76px);
+  line-height: .95;
+  letter-spacing: .02em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-wer-wuerde-eher .wwe-card::before,
+  .game-wer-wuerde-eher .wwe-word,
+  .game-wer-wuerde-eher .wwe-lead,
+  .game-wer-wuerde-eher .wwe-floaters span,
+  .game-wer-wuerde-eher .wwe-go,
+  .game-wer-wuerde-eher .wwe-ov-rays,
+  .game-wer-wuerde-eher .wwe-vote-btn,
+  .game-wer-wuerde-eher .wwe-vote-btn::after { animation: none !important; }
+}
+
+/* ---------- Startbild: Finger zeigen auf die Mitte ---------- */
+.game-wer-wuerde-eher .wwe-hero {
+  position: relative;
+  align-self: center;
+  width: 170px;
+  height: 170px;
+  animation: wwe-hero-in .7s cubic-bezier(.2, .8, .3, 1.3) backwards;
+}
+.game-wer-wuerde-eher .wwe-hero::before {
+  content: '';
+  position: absolute;
+  inset: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 28%, transparent), transparent 70%);
+  animation: wwe-hero-glow 3s ease-in-out infinite;
+}
+.game-wer-wuerde-eher .wwe-hero-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 52px;
+  line-height: 1;
+}
+.game-wer-wuerde-eher .wwe-hero-face i {
+  grid-area: 1 / 1;
+  font-style: normal;
+}
+.game-wer-wuerde-eher .wwe-hero-face i:first-child { animation: wwe-hero-think 3s ease-in-out infinite; }
+.game-wer-wuerde-eher .wwe-hero-face i:last-child { animation: wwe-hero-shock 3s ease-in-out infinite; }
+/* Jeder Finger sitzt auf einem Kreis und zeigt zur Mitte; im Takt stechen alle gleichzeitig zu */
+.game-wer-wuerde-eher .wwe-hero-hand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--a));
+}
+.game-wer-wuerde-eher .wwe-hero-hand i {
+  position: absolute;
+  left: -84px;
+  top: -14px;
+  font-size: 26px;
+  font-style: normal;
+  line-height: 1;
+  animation: wwe-hero-jab 3s cubic-bezier(.5, 0, .5, 1) infinite;
+  animation-delay: calc(var(--i) * 15ms);
+}
+@keyframes wwe-hero-in {
+  from { opacity: 0; transform: scale(.5) rotate(-30deg); }
+}
+@keyframes wwe-hero-glow {
+  0%, 60%, 100% { transform: scale(.9); opacity: .6; }
+  78% { transform: scale(1.2); opacity: 1; }
+}
+@keyframes wwe-hero-jab {
+  0%, 62%, 100% { transform: translateX(0); }
+  74%, 86% { transform: translateX(18px); }
+}
+@keyframes wwe-hero-think {
+  0%, 100% { opacity: 1; transform: rotate(-8deg); }
+  35% { opacity: 1; transform: rotate(8deg); }
+  66% { opacity: 1; transform: rotate(-4deg); }
+  70%, 92% { opacity: 0; transform: scale(.6); }
+}
+@keyframes wwe-hero-shock {
+  0%, 66%, 96%, 100% { opacity: 0; transform: scale(.6); }
+  72% { opacity: 1; transform: scale(1.25); }
+  76%, 80%, 84%, 88% { opacity: 1; transform: translateX(-3px) scale(1.1); }
+  78%, 82%, 86%, 90% { opacity: 1; transform: translateX(3px) scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-wer-wuerde-eher .wwe-hero-face i:last-child { display: none; }
+}

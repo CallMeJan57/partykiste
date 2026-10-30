@@ -1,0 +1,407 @@
+/* Alle Regeln beginnen mit .game-emoji-raten, damit sie nur in diesem Spiel gelten. */
+
+/* Gelb als Akzent, Pink und Grün für Effekte – im hellen Design dunkler, damit alles lesbar bleibt */
+.game-emoji-raten {
+  --accent: #b45309;
+  --accent-2: #eab308;
+  --on-accent: #ffffff;
+  --pop: #db2777;
+  --good: #15803d;
+  --bad: #dc2626;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .game-emoji-raten {
+    --accent: #facc15;
+    --accent-2: #fde68a;
+    --on-accent: #241a02;
+    --pop: #f472b6;
+    --good: #4ade80;
+    --bad: #f87171;
+  }
+}
+:root[data-theme="dark"] .game-emoji-raten {
+  --accent: #facc15;
+  --accent-2: #fde68a;
+  --on-accent: #241a02;
+  --pop: #f472b6;
+  --good: #4ade80;
+  --bad: #f87171;
+}
+
+.game-emoji-raten .em-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+/* Nachdenkliches Gesicht, um das Emojis kreisen */
+.game-emoji-raten .em-orbit {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 190px;
+  height: 190px;
+  animation: em-pop .7s cubic-bezier(.2, .8, .3, 1.4) backwards;
+}
+.game-emoji-raten .em-orbit-center {
+  font-size: 72px;
+  line-height: 1;
+  animation: em-think 3s ease-in-out infinite;
+}
+.game-emoji-raten .em-orbit-ring {
+  position: absolute;
+  inset: 0;
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 50%;
+  animation: em-spin 18s linear infinite;
+}
+.game-emoji-raten .em-orbit-item {
+  position: absolute;
+  inset: 0;
+  transform: rotate(calc(360deg / var(--n) * var(--i)));
+}
+.game-emoji-raten .em-orbit-item > span {
+  position: absolute;
+  left: 50%;
+  top: -16px;
+  margin-left: -16px;
+  font-size: 30px;
+  line-height: 1;
+  /* gegen die Drehung des Rings, damit die Emojis aufrecht bleiben */
+  animation: em-spin-back 18s linear infinite;
+  --start: calc(-360deg / var(--n) * var(--i));
+}
+@keyframes em-spin { to { transform: rotate(360deg); } }
+@keyframes em-spin-back {
+  from { transform: rotate(var(--start)); }
+  to { transform: rotate(calc(var(--start) - 360deg)); }
+}
+@keyframes em-think {
+  0%, 100% { transform: rotate(-6deg) translateY(0); }
+  50% { transform: rotate(6deg) translateY(-6px); }
+}
+
+.game-emoji-raten .em-title {
+  font-family: var(--font-display);
+  font-size: clamp(54px, 15vw, 78px);
+  line-height: .92;
+  letter-spacing: .02em;
+  color: var(--accent);
+}
+.game-emoji-raten .em-letter {
+  display: inline-block;
+  animation: em-letter .55s cubic-bezier(.3, .8, .3, 1.5) backwards;
+  animation-delay: calc(200ms + var(--i) * 45ms);
+}
+@keyframes em-letter {
+  from { opacity: 0; transform: translateY(-.7em) rotate(-20deg) scale(.4); }
+}
+
+.game-emoji-raten .em-lede {
+  max-width: 36ch;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ---------- Rätsel ---------- */
+.game-emoji-raten .em-round { gap: 16px; }
+
+.game-emoji-raten .em-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.game-emoji-raten .em-category {
+  flex: none;
+  white-space: nowrap;
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Bühne mit den Emojis */
+.game-emoji-raten .em-stage {
+  position: relative;
+  flex: 1;
+  min-height: 230px;
+  display: grid;
+  place-items: center;
+  padding: 26px 14px 30px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 65%),
+    var(--surface);
+  box-shadow: var(--shadow);
+}
+.game-emoji-raten .em-stage-glow {
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--accent) 16%, transparent), transparent 30%, color-mix(in srgb, var(--pop) 12%, transparent), transparent 60%);
+  animation: em-spin 14s linear infinite;
+  pointer-events: none;
+}
+
+.game-emoji-raten .em-emojis {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 10px;
+}
+.game-emoji-raten .em-slot {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+/* Größe je nach Anzahl: zwei Emojis groß, fünf kleiner */
+.game-emoji-raten .em-emoji {
+  display: block;
+  font-size: clamp(48px, calc(46vw / var(--count)), 96px);
+  line-height: 1.1;
+  animation: em-bob 2.4s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.35s);
+}
+.game-emoji-raten .em-shadow {
+  width: 70%;
+  height: 8px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .45), transparent);
+  opacity: .35;
+  animation: em-shadow 2.4s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.35s);
+}
+@keyframes em-bob {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+@keyframes em-shadow {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(.75); opacity: .2; }
+}
+
+/* Zündschnur: schrumpft mit der Zeit, in den letzten Sekunden rot */
+.game-emoji-raten .em-fuse {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 12px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.game-emoji-raten .em-fuse-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform-origin: left;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.game-emoji-raten .is-urgent .em-fuse-bar { background: var(--bad); box-shadow: 0 0 12px var(--bad); }
+.game-emoji-raten .is-urgent .em-emoji { animation: em-nervous .3s linear infinite; }
+@keyframes em-nervous {
+  25% { transform: translate(-2px, 1px) rotate(-3deg); }
+  75% { transform: translate(2px, -1px) rotate(3deg); }
+}
+
+/* Gelöst: Emojis springen nacheinander vor Freude */
+.game-emoji-raten .is-solved .em-emoji {
+  animation: em-jump .6s cubic-bezier(.3, 0, .3, 1) 3 backwards;
+  animation-delay: calc(var(--i) * 90ms);
+}
+.game-emoji-raten .is-solved .em-stage { border-color: var(--good); }
+@keyframes em-jump {
+  0%, 100% { transform: translateY(0) scale(1); }
+  20% { transform: translateY(0) scale(1.15, .85); }
+  55% { transform: translateY(-34px) scale(.95, 1.08) rotate(10deg); }
+}
+
+/* Aufgelöst: Emojis lassen die Köpfe hängen */
+.game-emoji-raten .is-failed .em-emoji {
+  animation: em-droop .8s cubic-bezier(.3, 0, .3, 1) forwards;
+  animation-delay: calc(var(--i) * 70ms);
+}
+.game-emoji-raten .is-failed .em-stage { border-color: var(--bad); }
+@keyframes em-droop {
+  to { transform: translateY(16px) rotate(-18deg) scale(.88); filter: grayscale(.8); opacity: .65; }
+}
+
+/* ---------- Buchstabenkacheln ---------- */
+.game-emoji-raten .em-tiles { min-height: 0; }
+.game-emoji-raten .em-tiles[data-level="0"] { display: none; }
+.game-emoji-raten .em-tile-grid {
+  --cap: 30px;
+  /* Kachelbreite: höchstens --cap, aber so klein, dass das längste Wort in eine Zeile passt */
+  --tile: min(var(--cap), calc((min(100vw, 480px) - 48px) / var(--longest) - 3px));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+}
+.game-emoji-raten .em-tile-grid.is-small { --cap: 25px; gap: 7px 11px; }
+.game-emoji-raten .em-tile-grid.is-tiny { --cap: 21px; gap: 6px 9px; }
+.game-emoji-raten .em-tile-word {
+  display: inline-flex;
+  gap: 3px;
+}
+.game-emoji-raten .em-tile {
+  display: grid;
+  place-items: center;
+  width: var(--tile);
+  height: calc(var(--tile) * 1.2);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 50%, var(--line));
+  border-radius: 6px;
+  background: var(--surface);
+  font-family: var(--font-display);
+  font-size: calc(var(--tile) * .8);
+  line-height: 1;
+  animation: em-tile-in .4s cubic-bezier(.3, .8, .3, 1.3) backwards;
+  animation-delay: calc(var(--i) * 25ms);
+}
+.game-emoji-raten .em-punct {
+  align-self: end;
+  font-family: var(--font-display);
+  font-size: calc(var(--tile) * .8);
+}
+.game-emoji-raten .em-tile-char { opacity: 0; }
+@keyframes em-tile-in {
+  from { opacity: 0; transform: perspective(300px) rotateX(-90deg); }
+}
+
+/* Tipp 2: Anfangsbuchstaben klappen um */
+.game-emoji-raten .em-tiles[data-level="2"] .is-first,
+.game-emoji-raten .em-tiles[data-level="all"] .em-tile {
+  animation: em-tile-flip .5s cubic-bezier(.3, .8, .3, 1.2) backwards;
+  animation-delay: calc(var(--i) * 45ms);
+}
+.game-emoji-raten .em-tiles[data-level="2"] .is-first {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+.game-emoji-raten .em-tiles[data-level="2"] .is-first .em-tile-char,
+.game-emoji-raten .em-tiles[data-level="all"] .em-tile-char { opacity: 1; }
+@keyframes em-tile-flip {
+  from { transform: perspective(300px) rotateX(180deg); }
+}
+.game-emoji-raten .is-solved .em-tile {
+  border-color: var(--good);
+  background: color-mix(in srgb, var(--good) 16%, var(--surface));
+}
+.game-emoji-raten .is-failed .em-tile {
+  border-color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 12%, var(--surface));
+}
+
+/* ---------- Knöpfe ---------- */
+.game-emoji-raten .em-actions {
+  display: grid;
+  gap: 10px;
+}
+.game-emoji-raten .em-action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.game-emoji-raten .em-action-row .btn {
+  padding-inline: 8px;
+  font-size: 14px;
+}
+.game-emoji-raten .em-action-row .btn:disabled { opacity: .45; }
+.game-emoji-raten .em-links {
+  display: flex;
+  justify-content: center;
+}
+
+.game-emoji-raten .em-award-title {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 30px;
+  letter-spacing: .03em;
+  animation: em-pop .45s cubic-bezier(.3, .8, .3, 1.4) .3s backwards;
+}
+.game-emoji-raten .em-award-title b {
+  color: var(--good);
+  font-weight: inherit;
+}
+.game-emoji-raten .em-award-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.game-emoji-raten .em-award {
+  position: relative;
+  appearance: none;
+  padding: 12px 18px;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  animation: em-pop .4s cubic-bezier(.3, .8, .3, 1.4) backwards;
+  animation-delay: calc(.45s + var(--i) * 60ms);
+}
+.game-emoji-raten .em-award:active,
+.game-emoji-raten .em-award.is-picked {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.game-emoji-raten .em-plus {
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--good);
+  pointer-events: none;
+  animation: em-plus .6s ease-out forwards;
+}
+@keyframes em-plus {
+  from { opacity: 0; transform: translate(-50%, 6px) scale(.6); }
+  30% { opacity: 1; transform: translate(-50%, -12px) scale(1.2); }
+  to { opacity: 0; transform: translate(-50%, -40px); }
+}
+
+/* ---------- Spielende ---------- */
+.game-emoji-raten .em-end {
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.game-emoji-raten .em-end-emojis {
+  display: flex;
+  gap: 10px;
+  font-size: 54px;
+  line-height: 1;
+}
+.game-emoji-raten .em-end-emojis span {
+  animation: em-pop .5s cubic-bezier(.3, .8, .3, 1.4) backwards, em-jump .8s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 120ms), calc(.6s + var(--i) * 150ms);
+}
+.game-emoji-raten .em-end-title {
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(42px, 13vw, 66px);
+  line-height: .98;
+  letter-spacing: .02em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  color: var(--accent);
+}
+
+@keyframes em-pop {
+  from { opacity: 0; transform: scale(.5); }
+}
+

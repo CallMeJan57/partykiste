@@ -1,0 +1,398 @@
+/* Alle Regeln beginnen mit .game-noch-nie, damit sie nur in diesem Spiel gelten. */
+
+/* Eigener Akzent für dieses Spiel – gilt für alle Buttons und Auswahlen darin */
+.game-noch-nie {
+  --accent: #14a88f;
+  --accent-2: #6fdcb8;
+}
+
+.game-noch-nie .nie-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+/* Deko-Glas, das sich mit Bläschen füllt und wieder leert */
+.game-noch-nie .nie-glass {
+  width: 74px;
+  color: var(--accent);
+  overflow: visible;
+}
+.game-noch-nie .nie-glass-liquid { animation: nie-glass-fill 5s ease-in-out infinite alternate; }
+.game-noch-nie .nie-glass-wave {
+  fill: color-mix(in srgb, var(--accent) 70%, transparent);
+  animation: nie-glass-wave 1.8s linear infinite;
+}
+.game-noch-nie .nie-glass-bubble {
+  fill: #fff;
+  opacity: .7;
+  animation: nie-glass-bubble 2.4s ease-in infinite;
+}
+.game-noch-nie .nie-glass-bubble:nth-of-type(2) { animation-delay: .8s; }
+.game-noch-nie .nie-glass-bubble:nth-of-type(3) { animation-delay: 1.6s; }
+@keyframes nie-glass-fill {
+  from { transform: translateY(46px); }
+  to { transform: translateY(2px); }
+}
+@keyframes nie-glass-wave {
+  to { transform: translateX(40px); }
+}
+@keyframes nie-glass-bubble {
+  from { transform: translateY(0); opacity: .8; }
+  to { transform: translateY(-46px); opacity: 0; }
+}
+
+.game-noch-nie .nie-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 13vw, 72px);
+  line-height: .92;
+  letter-spacing: .02em;
+}
+.game-noch-nie .nie-title span { color: var(--accent); }
+
+.game-noch-nie .nie-lede {
+  max-width: 36ch;
+  margin-inline: auto;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ---------- Spiel ---------- */
+.game-noch-nie .nie-play {
+  --nie-color: var(--accent);
+  gap: 16px;
+}
+
+.game-noch-nie .nie-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.game-noch-nie .nie-chip {
+  border-color: var(--nie-color);
+  color: var(--nie-color);
+  transition: color .4s ease, border-color .4s ease;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.game-noch-nie .nie-progress {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.game-noch-nie .nie-card {
+  --level: 10%;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  flex: 1;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  padding: 28px 24px;
+  text-align: left;
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.game-noch-nie .nie-prefix,
+.game-noch-nie .nie-text {
+  position: relative;
+  z-index: 2;
+}
+
+/* Die Karte als Glas: Flüssigkeit mit Welle steigt mit jeder Aussage */
+.game-noch-nie .nie-liquid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  height: var(--level);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--nie-color) 30%, transparent), color-mix(in srgb, var(--nie-color) 44%, transparent));
+  transition: height .9s cubic-bezier(.3, 1.3, .5, 1), background .5s ease;
+}
+.game-noch-nie .nie-wave {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% - 1px);
+  width: 200%;
+  height: 14px;
+  animation: nie-wave 3.2s linear infinite;
+}
+.game-noch-nie .nie-wave path {
+  fill: color-mix(in srgb, var(--nie-color) 30%, transparent);
+  transition: fill .5s ease;
+}
+@keyframes nie-wave {
+  to { transform: translateX(-50%); }
+}
+
+/* Aufsteigende Kohlensäure */
+.game-noch-nie .nie-bubbles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.game-noch-nie .nie-bubbles i {
+  position: absolute;
+  bottom: -14px;
+  border: 1.5px solid color-mix(in srgb, var(--nie-color) 65%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--nie-color) 16%, transparent);
+  animation-name: nie-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes nie-rise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: .9; }
+  35% { transform: translate(6px, -140px); }
+  65% { transform: translate(-6px, -280px); }
+  90% { opacity: .7; }
+  100% { transform: translate(4px, -420px); opacity: 0; }
+}
+
+/* „Ich hab noch nie“ hüpft Buchstabe für Buchstabe, die Aussage Wort für Wort herein */
+.game-noch-nie .nie-letter,
+.game-noch-nie .nie-word { display: inline-block; }
+.game-noch-nie .nie-letter {
+  animation: nie-pop .38s cubic-bezier(.3, 1.6, .5, 1) backwards;
+  animation-delay: calc(var(--i) * 22ms);
+}
+.game-noch-nie .nie-word {
+  animation: nie-word .42s cubic-bezier(.2, .9, .3, 1.2) backwards;
+  animation-delay: calc(var(--i) * 55ms + 220ms);
+}
+@keyframes nie-pop {
+  from { opacity: 0; transform: translateY(-14px) scale(.4); }
+}
+@keyframes nie-word {
+  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+}
+
+/* Anstoßen */
+.game-noch-nie .nie-cheers-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.game-noch-nie .nie-mug {
+  position: absolute;
+  font-size: 70px;
+  line-height: 1;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .35));
+}
+.game-noch-nie .nie-mug-left { transform-origin: 80% 80%; }
+.game-noch-nie .nie-mug-right { transform-origin: 20% 80%; }
+.game-noch-nie .nie-mug-right > span {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+.game-noch-nie .nie-prost {
+  position: absolute;
+  top: 22%;
+  font-family: var(--font-display);
+  font-size: 54px;
+  letter-spacing: .05em;
+  color: var(--nie-color);
+  text-shadow: 3px 4px 0 rgba(0, 0, 0, .25);
+  opacity: 0;
+}
+
+.game-noch-nie .nie-under {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.game-noch-nie .nie-under .nie-rule { text-align: left; }
+.game-noch-nie .nie-cheers {
+  appearance: none;
+  flex: none;
+  padding: 9px 14px;
+  border: 1.5px solid var(--nie-color);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--nie-color) 12%, transparent);
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .12s ease;
+}
+.game-noch-nie .nie-cheers:active { transform: scale(.94) rotate(-4deg); }
+
+.game-noch-nie .nie-prefix {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: .06em;
+  color: var(--nie-color);
+  transition: color .4s ease;
+}
+.game-noch-nie .nie-prefix:empty { display: none; }
+
+.game-noch-nie .nie-text {
+  font-weight: 800;
+  font-size: clamp(24px, 7vw, 31px);
+  line-height: 1.22;
+  text-wrap: pretty;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+.game-noch-nie .nie-rule {
+  text-align: center;
+  font-size: 14.5px;
+  color: var(--text-muted);
+}
+.game-noch-nie .nie-rule b { color: var(--text); }
+
+.game-noch-nie .nie-nav {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+}
+
+/* ---------- Ende ---------- */
+.game-noch-nie .nie-end {
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.game-noch-nie .nie-end-mugs {
+  display: flex;
+  gap: 4px;
+  font-size: 64px;
+  line-height: 1;
+}
+.game-noch-nie .nie-end-mugs span { animation: nie-end-clink 1.2s ease-in-out infinite; }
+.game-noch-nie .nie-end-mugs span:first-child { transform-origin: 90% 90%; }
+.game-noch-nie .nie-end-mugs span:last-child { transform-origin: 10% 90%; scale: -1 1; }
+@keyframes nie-end-clink {
+  0%, 100% { transform: rotate(0) translateX(0); }
+  40% { transform: rotate(-16deg) translateX(10px); }
+  50% { transform: rotate(-10deg) translateX(8px); }
+}
+
+.game-noch-nie .nie-end-title {
+  font-family: var(--font-display);
+  font-size: clamp(64px, 20vw, 96px);
+  line-height: .9;
+  color: var(--accent);
+}
+
+.game-noch-nie .nie-end-sub {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.game-noch-nie .nie-end-actions {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding-top: 8px;
+}
+
+/* Wer hat's schon getan? – Namen zum Antippen, mit Schluck-Zähler */
+.game-noch-nie .nie-who {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.game-noch-nie .nie-who .eyebrow { text-align: center; }
+.game-noch-nie .nie-who-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.game-noch-nie .nie-who-btn {
+  appearance: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color .15s ease, background-color .15s ease, transform .12s ease;
+  animation: nie-who-in .4s cubic-bezier(.3, .8, .3, 1.4) backwards;
+  animation-delay: calc(var(--i) * 40ms);
+}
+.game-noch-nie .nie-who-btn:active { transform: scale(.94); }
+.game-noch-nie .nie-who-btn[aria-pressed="true"] {
+  border-color: var(--nie-color);
+  background: color-mix(in srgb, var(--nie-color) 20%, var(--surface));
+}
+.game-noch-nie .nie-who-count {
+  min-width: 26px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.game-noch-nie .nie-who-btn[aria-pressed="true"] .nie-who-count {
+  background: var(--nie-color);
+  color: #fff;
+}
+.game-noch-nie .nie-who-mug {
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  font-size: 20px;
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+}
+@keyframes nie-who-in {
+  from { opacity: 0; transform: scale(.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-noch-nie .nie-glass-liquid,
+  .game-noch-nie .nie-glass-wave,
+  .game-noch-nie .nie-glass-bubble,
+  .game-noch-nie .nie-wave,
+  .game-noch-nie .nie-bubbles i,
+  .game-noch-nie .nie-letter,
+  .game-noch-nie .nie-word,
+  .game-noch-nie .nie-end-mugs span { animation: none; }
+  .game-noch-nie .nie-bubbles { display: none; }
+  .game-noch-nie .nie-liquid { transition: none; }
+}

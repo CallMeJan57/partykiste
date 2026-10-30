@@ -1,0 +1,14 @@
+/* Alle Regeln mit .game-<id> beginnen, damit sie keine anderen Spiele beeinflussen. */
+
+.game-vorlage .vorlage-screen {
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.game-vorlage .vorlage-title {
+  font-family: var(--font-display);
+  font-size: 56px;
+  line-height: .95;
+}

@@ -1,0 +1,800 @@
+/* Gemeinsame Bausteine, die jedes Spiel verwenden kann. */
+
+/* ---------- App-Rahmen ---------- */
+.app {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 6px;
+}
+.topbar > :last-child { justify-self: end; }
+
+.wordmark,
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: .14em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.back-btn {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  appearance: none;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px 7px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+}
+.back-btn svg { width: 18px; height: 18px; }
+
+.icon-btn {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.icon-btn svg { width: 18px; height: 18px; }
+
+/* Werkzeug-Knöpfe in der Kopfzeile (z. B. Regelrad): bunt, ruckelt ab und zu wie ein angestoßenes Rad */
+.tool-btn { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.tool-btn svg {
+  width: 24px;
+  height: 24px;
+  transform-origin: 50% 53%;
+  animation: tool-btn-nudge 7s ease-in-out 3s infinite;
+}
+@keyframes tool-btn-nudge {
+  0%, 84%, 100% { transform: rotate(0); }
+  88% { transform: rotate(-28deg); }
+  92% { transform: rotate(16deg); }
+  96% { transform: rotate(-6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool-btn svg { animation: none; }
+}
+
+.view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 10px var(--gutter) 32px;
+}
+
+/* Container, in den ein Spiel gerendert wird (bekommt zusätzlich .game-<id>) */
+.game {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ein Bildschirm innerhalb eines Spiels (Einstellungen, Runde, Ergebnis …) */
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ---------- Typo-Helfer ---------- */
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled {
+  opacity: .4;
+  cursor: default;
+  transform: none;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: .06em;
+  color: var(--on-accent);
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.btn-ghost {
+  padding: 13px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: none;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.btn-link {
+  align-self: center;
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- Segment-Schalter (siehe js/core/ui.js) ---------- */
+.seg {
+  display: grid;
+  grid-template-columns: repeat(var(--seg-count, 3), 1fr);
+  gap: 6px;
+  width: 100%;
+  padding: 5px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.seg button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 10px 4px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.seg button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+/* ---------- Mehrfachauswahl (siehe js/core/ui.js) ---------- */
+/* Kompakte Kacheln in zwei Spalten: Häkchen, Name und eine kurze Zeile darunter */
+.toggle-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.toggle-row {
+  appearance: none;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 62px;
+  padding: 11px 12px;
+  text-align: left;
+  background: var(--surface-2);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color .15s ease, background-color .15s ease, transform .12s ease;
+}
+.toggle-row:active { transform: scale(.97); }
+.toggle-row[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+.toggle-check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 2px solid var(--line-strong);
+  border-radius: 6px;
+  opacity: .55;
+  transition: background-color .15s ease, border-color .15s ease, opacity .15s ease;
+}
+.toggle-row[aria-pressed="true"] .toggle-check {
+  background: var(--accent);
+  border-color: var(--accent);
+  opacity: 1;
+  animation: toggle-pop .3s cubic-bezier(.3, .8, .3, 1.6);
+}
+.toggle-row[aria-pressed="true"] .toggle-check::after {
+  content: '';
+  width: 5px;
+  height: 10px;
+  border: solid var(--on-accent);
+  border-width: 0 2.5px 2.5px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+@keyframes toggle-pop {
+  50% { transform: scale(1.3); }
+}
+.toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.toggle-label {
+  font-weight: 700;
+  font-size: 14.5px;
+  line-height: 1.25;
+}
+.toggle-hint {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+/* ---------- Mitspieler (siehe js/core/ui.js) ---------- */
+/* Zugeklappt: bunte Kreise mit Anfangsbuchstaben und die Namen; aufgeklappt: Namen bearbeiten */
+.players {
+  display: flex;
+  flex-direction: column;
+}
+.players-summary {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.players-avatars {
+  flex: none;
+  display: flex;
+}
+.players-avatars span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-left: -9px;
+  border: 2.5px solid var(--surface);
+  border-radius: 50%;
+  background: var(--c);
+  font-weight: 800;
+  font-size: 14px;
+  color: #160f0a;
+  animation: players-avatar-in .4s cubic-bezier(.3, .8, .3, 1.5) backwards;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+.players-avatars span:first-child { margin-left: 0; }
+.players-avatars .players-more {
+  background: var(--surface-2);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.players-avatars .players-empty {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  font-size: 17px;
+}
+@keyframes players-avatar-in {
+  from { opacity: 0; transform: scale(.3); }
+}
+.players-summary-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.players-count { font-size: 15px; }
+.players-names {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+/* Plus, das sich beim Aufklappen zum Kreuz dreht */
+.players-toggle {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  transition: transform .3s cubic-bezier(.3, .8, .3, 1.3);
+}
+.players-toggle::before,
+.players-toggle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 2.5px;
+  margin: -1.25px 0 0 -6px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.players-toggle::after { transform: rotate(90deg); }
+.players.is-open .players-toggle { transform: rotate(135deg); }
+
+/* Aufklappen mit weichem Übergang (0fr → 1fr) */
+.players-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .35s cubic-bezier(.2, .8, .2, 1);
+}
+.players.is-open .players-body { grid-template-rows: 1fr; }
+.players-inner {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* ein paar Pixel Luft rundherum, sonst schneidet overflow den Rand und Fokusrahmen des Eingabefelds ab */
+  margin-inline: -4px;
+  padding: 0 4px;
+  opacity: 0;
+  transition: opacity .25s ease, padding .35s ease;
+}
+.players.is-open .players-inner {
+  padding: 12px 4px 4px;
+  opacity: 1;
+}
+
+.player-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.player-list:empty { display: none; }
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px 5px 5px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.player-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-remove {
+  appearance: none;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.player-add {
+  display: flex;
+  gap: 8px;
+}
+.player-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font: 500 16px var(--font-body);
+  color: var(--text);
+}
+.player-add input::placeholder { color: var(--text-muted); }
+.player-add input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.player-add button {
+  appearance: none;
+  flex: none;
+  width: 50px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--on-accent);
+  cursor: pointer;
+}
+.player-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.player-hint:empty { display: none; }
+.player-hint.is-error { color: var(--danger); }
+.players .player-hint { padding-top: 8px; }
+
+/* ---------- Rangliste auf Endbildschirmen (ranking() in js/core/ui.js) ---------- */
+.ranking {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  counter-reset: rank;
+}
+.ranking li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  counter-increment: rank;
+  animation: ranking-row .45s cubic-bezier(.2, .8, .2, 1) backwards;
+  animation-delay: calc(.35s + var(--i) * 80ms);
+}
+.ranking li::before {
+  content: counter(rank) '.';
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.ranking li:first-child {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.ranking-name {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.ranking-note {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ranking-gain {
+  font-style: normal;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--good, var(--accent));
+  animation: ranking-gain .7s cubic-bezier(.3, .8, .3, 1.5) backwards;
+  animation-delay: calc(.9s + var(--i) * 80ms);
+}
+.ranking-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ranking.has-crown li:first-child .ranking-value::after { content: ' 👑'; }
+@keyframes ranking-row {
+  from { opacity: 0; transform: translateX(-24px); }
+}
+@keyframes ranking-gain {
+  from { opacity: 0; transform: translateY(10px) scale(2); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ranking li,
+  .ranking-gain { animation: none; }
+}
+
+/* ---------- Nachfrage beim Verlassen eines laufenden Spiels (js/core/app.js) ---------- */
+.leave-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 6, 4, .6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: leave-fade .2s ease backwards;
+}
+.leave-overlay.is-closing { animation: leave-fade .18s ease reverse forwards; }
+.leave-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: min(340px, 100%);
+  padding: 22px 20px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: center;
+  animation: leave-pop .35s cubic-bezier(.3, .8, .3, 1.3) backwards;
+}
+.leave-icon {
+  font-size: 44px;
+  line-height: 1;
+  animation: leave-door 1.6s ease-in-out .3s infinite;
+}
+.leave-title {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: .02em;
+}
+.leave-text {
+  margin-bottom: 6px;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+.leave-go { color: var(--danger); }
+@keyframes leave-fade { from { opacity: 0; } }
+@keyframes leave-pop {
+  from { opacity: 0; transform: scale(.85) translateY(12px); }
+}
+@keyframes leave-door {
+  0%, 60%, 100% { transform: rotate(0); }
+  70% { transform: rotate(-10deg); }
+  80% { transform: rotate(8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .leave-overlay,
+  .leave-card,
+  .leave-icon { animation: none; }
+}
+
+/* ---------- Einstellungsseiten (siehe setupScreen in js/core/ui.js) ---------- */
+.setup { gap: 12px; }
+
+.setup-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 6px;
+  text-align: center;
+}
+
+/* Titel der Spiele etwas kleiner als im Spiel selbst, damit die Einstellungen schneller sichtbar sind */
+.setup .setup-hero h1 { font-size: clamp(40px, 11.5vw, 56px); }
+.setup .setup-hero > * { gap: 10px; }
+
+/* Karte je Thema: Kopfzeile mit Symbol, Titel und Zähler, darunter die Einstellungen */
+.setup-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  animation: setup-card-in .5s cubic-bezier(.2, .8, .2, 1) backwards;
+  animation-delay: calc(150ms + var(--i) * 70ms);
+}
+@keyframes setup-card-in {
+  from { opacity: 0; transform: translateY(18px) scale(.98); }
+}
+.setup-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.setup-card-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  font-size: 15px;
+  letter-spacing: 0;
+}
+.setup-card-title { flex: 1; }
+.setup-optional,
+.setup-count {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: none;
+  white-space: nowrap;
+}
+.setup-count {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mehrere Einstellungen in einer Karte, durch feine Linien getrennt */
+.setup-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.setup-row + .setup-row {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.setup-row-label {
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.setup-note,
+.setup-row .setup-note {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.setup-note:empty { display: none; }
+
+/* Start-Knopf bleibt unten am Bildschirm, darüber blendet der Inhalt weich aus */
+.setup-start {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: auto calc(var(--gutter) * -1) -32px; /* bei wenig Inhalt ganz unten */
+  padding: 22px var(--gutter) calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--bg) 30%);
+  animation: setup-start-in .5s cubic-bezier(.2, .8, .2, 1) .35s backwards;
+}
+.setup-start-note {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+@keyframes setup-start-in {
+  from { opacity: 0; transform: translateY(30px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .setup-card,
+  .setup-start,
+  .players-avatars span { animation: none; }
+}
+
+/* ---------- Chips ---------- */
+.chips {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ---------- Effekte (siehe js/core/fx.js) ---------- */
+.fx-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+}
+.fx-flash.is-on { animation: fx-flash .55s ease-out forwards; }
+@keyframes fx-flash {
+  from { opacity: .95; }
+  to { opacity: 0; }
+}
+
+.fx-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.fx-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 60;
+  max-width: calc(100% - 32px);
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: var(--text);
+  box-shadow: var(--shadow);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--bg);
+  text-align: center;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.fx-shake { animation: fx-shake .5s; }
+@keyframes fx-shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, -1px, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 1px, 0); }
+  40%, 60% { transform: translate3d(4px, -1px, 0); }
+}
+
+/* ---------- Start- und Fehlermeldungen ---------- */
+.boot-hint {
+  margin: auto;
+  max-width: 34ch;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  opacity: 0;
+  animation: boot-hint-in .3s 1.5s forwards;
+}
+@keyframes boot-hint-in { to { opacity: 1; } }
+
+.load-error {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+.load-error code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}

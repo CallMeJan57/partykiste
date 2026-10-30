@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15120f" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#e9edf0" media="(prefers-color-scheme: light)">
+  <title>Partykiste</title>
+
+  <!-- Als App auf den Home-Bildschirm (siehe manifest.webmanifest, sw.js, tools/app-icons.py) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Partykiste">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/hub.css">
+  <link rel="stylesheet" href="css/dice.css">
+
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar" id="topbar"></header>
+    <main class="view" id="view">
+      <p class="boot-hint">
+        Die App startet nicht. Sie muss über einen Webserver laufen, nicht per Doppelklick.
+        In IntelliJ: index.html öffnen und oben rechts ein Browser-Symbol anklicken.
+        Details stehen in der Browser-Konsole.
+      </p>
+    </main>
+  </div>
+</body>
+</html>

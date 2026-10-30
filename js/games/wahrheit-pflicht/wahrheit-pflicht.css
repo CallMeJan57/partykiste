@@ -1,0 +1,429 @@
+/* Alle Regeln beginnen mit .game-wahrheit-pflicht, damit sie nur in diesem Spiel gelten. */
+
+.game-wahrheit-pflicht {
+  --wahrheit: #3d8bff;
+  --pflicht: #ff4f7b;
+  --accent: #ff4f7b;
+  --accent-2: #ff9b6a;
+  --on-pick: #10131c;
+}
+
+.game-wahrheit-pflicht .wp-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+  text-align: center;
+}
+
+.game-wahrheit-pflicht .wp-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 13vw, 72px);
+  line-height: .92;
+  letter-spacing: .02em;
+}
+.game-wahrheit-pflicht .wp-word-wahrheit { color: var(--wahrheit); }
+.game-wahrheit-pflicht .wp-word-pflicht { color: var(--pflicht); }
+
+.game-wahrheit-pflicht .wp-lede {
+  max-width: 36ch;
+  margin-inline: auto;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.game-wahrheit-pflicht .wp-players-hint {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.game-wahrheit-pflicht .wp-players-hint:empty { display: none; }
+
+/* ---------- Wer ist dran? ---------- */
+.game-wahrheit-pflicht .wp-turn { gap: 20px; }
+
+.game-wahrheit-pflicht .wp-turn-head {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 12px;
+  text-align: center;
+}
+
+/* Scheinwerferkegel hinter dem Namen */
+.game-wahrheit-pflicht .wp-spotlight {
+  position: absolute;
+  left: 50%;
+  top: -40px;
+  width: 300px;
+  height: 230px;
+  margin-left: -150px;
+  background: radial-gradient(ellipse at 50% 60%, rgba(255, 244, 214, .22), rgba(255, 244, 214, 0) 65%);
+  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+  animation: wp-spot-on .6s ease-out both, wp-spot-sway 5s ease-in-out .6s infinite alternate;
+  transform-origin: 50% 0;
+}
+@keyframes wp-spot-on {
+  from { opacity: 0; transform: scaleY(.3); }
+}
+@keyframes wp-spot-sway {
+  from { transform: rotate(-4deg); }
+  to { transform: rotate(4deg); }
+}
+.game-wahrheit-pflicht .wp-turn-head > :not(.wp-spotlight) { position: relative; }
+.game-wahrheit-pflicht .wp-letter {
+  display: inline-block;
+  animation: wp-letter .5s cubic-bezier(.3, 1.6, .5, 1) backwards;
+  animation-delay: calc(var(--i) * 40ms + 150ms);
+}
+@keyframes wp-letter {
+  from { opacity: 0; transform: translateY(-30px) rotate(-12deg) scale(.5); }
+}
+
+.game-wahrheit-pflicht .wp-name {
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(56px, 17vw, 88px);
+  line-height: .95;
+  letter-spacing: .02em;
+  overflow-wrap: anywhere;
+}
+
+.game-wahrheit-pflicht .wp-choice {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  min-height: 220px;
+}
+
+.game-wahrheit-pflicht .wp-pick {
+  position: relative;
+  overflow: hidden;
+  animation: wp-float 3.2s ease-in-out infinite alternate;
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 10px;
+  border: none;
+  border-radius: var(--radius-xl);
+  color: var(--on-pick);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .12s ease;
+}
+.game-wahrheit-pflicht .wp-pick:active { transform: scale(.97); }
+.game-wahrheit-pflicht .wp-pick-pflicht { animation-delay: -1.6s; }
+@keyframes wp-float {
+  from { translate: 0 -4px; }
+  to { translate: 0 4px; }
+}
+/* Großes ? und ! als Wasserzeichen */
+.game-wahrheit-pflicht .wp-pick-glyph {
+  position: absolute;
+  right: -6px;
+  bottom: -26px;
+  font-family: var(--font-display);
+  font-size: 150px;
+  line-height: 1;
+  opacity: .18;
+  transform: rotate(12deg);
+  pointer-events: none;
+}
+.game-wahrheit-pflicht .wp-pick-label,
+.game-wahrheit-pflicht .wp-pick-hint { position: relative; }
+/* Glanzstreifen, der über die Knöpfe wandert */
+.game-wahrheit-pflicht .wp-pick::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .35) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: wp-shine 4.5s ease-in-out infinite;
+}
+.game-wahrheit-pflicht .wp-pick-pflicht::after { animation-delay: 2.25s; }
+@keyframes wp-shine {
+  0%, 70% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+/* Zufalls-Roulette */
+.game-wahrheit-pflicht .is-spinning .wp-pick {
+  opacity: .35;
+  animation: none;
+  transition: opacity .06s linear, transform .06s linear;
+}
+.game-wahrheit-pflicht .is-spinning .wp-pick.is-lit {
+  opacity: 1;
+  transform: scale(1.04);
+  box-shadow: 0 0 0 4px #fff, 0 0 30px rgba(255, 255, 255, .45);
+}
+.game-wahrheit-pflicht .is-spinning .wp-pick.is-winner { animation: wp-winner .5s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes wp-winner {
+  50% { transform: scale(1.12); }
+}
+.game-wahrheit-pflicht .wp-pick-wahrheit { background: var(--wahrheit); }
+.game-wahrheit-pflicht .wp-pick-pflicht { background: var(--pflicht); }
+
+.game-wahrheit-pflicht .wp-pick-label {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 10vw, 44px);
+  line-height: 1;
+  letter-spacing: .03em;
+}
+.game-wahrheit-pflicht .wp-pick-hint {
+  font-weight: 600;
+  font-size: 13.5px;
+  opacity: .8;
+}
+
+.game-wahrheit-pflicht .wp-tally {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.game-wahrheit-pflicht .wp-tally .chips {
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Karte ---------- */
+.game-wahrheit-pflicht .wp-card-screen { gap: 16px; }
+.game-wahrheit-pflicht .wp-is-wahrheit { --type-color: var(--wahrheit); }
+.game-wahrheit-pflicht .wp-is-pflicht { --type-color: var(--pflicht); }
+
+.game-wahrheit-pflicht .wp-card-head {
+  display: flex;
+  gap: 8px;
+}
+.game-wahrheit-pflicht .wp-type-chip {
+  border-color: var(--type-color);
+  color: var(--type-color);
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* Karte zum Umdrehen: Vorderseite (Aufgabe) und Rückseite (Muster mit ? oder !) */
+.game-wahrheit-pflicht .wp-flip {
+  position: relative;
+  flex: 1;
+  display: grid;
+  perspective: 1200px;
+}
+.game-wahrheit-pflicht .wp-flip-inner {
+  display: grid;
+  transform-style: preserve-3d;
+}
+.game-wahrheit-pflicht .wp-flip-inner > * {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.game-wahrheit-pflicht .wp-card-back {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  border-radius: var(--radius-xl);
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .1) 0 12px, transparent 12px 24px),
+    linear-gradient(135deg, var(--type-color), color-mix(in srgb, var(--type-color) 55%, #10131c));
+  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, .15), var(--shadow);
+  transform: rotateY(180deg);
+  color: #fff;
+}
+.game-wahrheit-pflicht .wp-card-back-glyph {
+  font-family: var(--font-display);
+  font-size: 150px;
+  line-height: .9;
+  text-shadow: 0 6px 0 rgba(0, 0, 0, .2);
+}
+.game-wahrheit-pflicht .wp-card-back-label {
+  font-family: var(--font-display);
+  font-size: 30px;
+  letter-spacing: .12em;
+}
+
+/* Aufgabe erscheint Wort für Wort, sobald die Karte umgedreht ist */
+.game-wahrheit-pflicht .wp-word {
+  display: inline-block;
+  animation: wp-word .4s cubic-bezier(.2, .9, .3, 1.2) backwards;
+  animation-delay: calc(var(--i) * 45ms + 650ms);
+}
+@keyframes wp-word {
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+}
+
+/* Stempel nach der Aufgabe */
+.game-wahrheit-pflicht .wp-stamp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  padding: 10px 22px;
+  border: 5px solid currentColor;
+  border-radius: 14px;
+  font-family: var(--font-display);
+  font-size: clamp(40px, 12vw, 58px);
+  line-height: 1;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  pointer-events: none;
+}
+.game-wahrheit-pflicht .wp-stamp.is-done { color: #22c55e; background: rgba(10, 30, 16, .78); }
+.game-wahrheit-pflicht .wp-stamp.is-drink { color: #ff5a4e; background: rgba(40, 10, 10, .8); }
+.game-wahrheit-pflicht .wp-stamp.is-done,
+.game-wahrheit-pflicht .wp-stamp.is-drink { animation: wp-stamp .38s cubic-bezier(.3, 1.6, .5, 1) forwards; }
+@keyframes wp-stamp {
+  from { opacity: 0; transform: translate(-50%, -50%) rotate(-24deg) scale(2.6); }
+  to { opacity: 1; transform: translate(-50%, -50%) rotate(-12deg) scale(1); }
+}
+
+.game-wahrheit-pflicht .wp-card {
+  flex: 1;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 28px 24px;
+  background: color-mix(in srgb, var(--type-color) 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--type-color) 35%, var(--line));
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+}
+
+.game-wahrheit-pflicht .wp-card-name {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: .06em;
+  color: var(--type-color);
+  overflow-wrap: anywhere;
+}
+
+.game-wahrheit-pflicht .wp-card-text {
+  font-weight: 800;
+  font-size: clamp(23px, 6.6vw, 30px);
+  line-height: 1.24;
+  text-wrap: pretty;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+.game-wahrheit-pflicht .wp-card-text b { color: var(--type-color); }
+.game-wahrheit-pflicht .wp-card { animation: wp-glow 2.6s ease-in-out 1s infinite alternate; }
+@keyframes wp-glow {
+  to { box-shadow: 0 0 0 3px color-mix(in srgb, var(--type-color) 35%, transparent), 0 0 34px color-mix(in srgb, var(--type-color) 30%, transparent), var(--shadow); }
+}
+
+.game-wahrheit-pflicht .wp-timer {
+  --progress: 0%;
+  appearance: none;
+  align-self: flex-start;
+  padding: 11px 18px;
+  border: 1.5px solid var(--type-color);
+  border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--type-color) 28%, transparent) var(--progress), transparent var(--progress));
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--type-color);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.game-wahrheit-pflicht .wp-timer.is-done {
+  background: var(--type-color);
+  color: var(--on-pick);
+}
+
+.game-wahrheit-pflicht .wp-card-actions {
+  display: grid;
+  gap: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-wahrheit-pflicht .wp-spotlight,
+  .game-wahrheit-pflicht .wp-letter,
+  .game-wahrheit-pflicht .wp-pick,
+  .game-wahrheit-pflicht .wp-pick::after,
+  .game-wahrheit-pflicht .wp-word,
+  .game-wahrheit-pflicht .wp-card,
+  .game-wahrheit-pflicht .wp-stamp.is-done,
+  .game-wahrheit-pflicht .wp-stamp.is-drink { animation: none; }
+  .game-wahrheit-pflicht .wp-stamp.is-done,
+  .game-wahrheit-pflicht .wp-stamp.is-drink { opacity: 1; }
+}
+
+/* ---------- Startbild: zwei Karten ---------- */
+.game-wahrheit-pflicht .wp-hero {
+  position: relative;
+  align-self: center;
+  width: 190px;
+  height: 128px;
+  animation: wp-hero-in .7s cubic-bezier(.2, .8, .3, 1.3) backwards;
+}
+.game-wahrheit-pflicht .wp-hero-card {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  width: 80px;
+  height: 110px;
+  margin-left: -40px;
+  border-radius: 14px;
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .3);
+  transform-origin: 50% 120%;
+}
+.game-wahrheit-pflicht .wp-hero-card b {
+  font-family: var(--font-display);
+  font-size: 60px;
+  font-weight: 400;
+  line-height: .85;
+}
+.game-wahrheit-pflicht .wp-hero-card small {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .9;
+}
+.game-wahrheit-pflicht .wp-hero-wahrheit {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--wahrheit) 70%, #fff), var(--wahrheit));
+  animation: wp-hero-left 4.4s ease-in-out infinite;
+}
+.game-wahrheit-pflicht .wp-hero-pflicht {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--pflicht) 70%, #fff), var(--pflicht));
+  animation: wp-hero-right 4.4s ease-in-out infinite;
+}
+@keyframes wp-hero-in {
+  from { opacity: 0; transform: translateY(24px) scale(.7); }
+}
+@keyframes wp-hero-left {
+  0%, 50%, 100% { transform: translateX(-24px) rotate(-14deg); z-index: 1; }
+  12%, 38% { transform: translateX(-28px) translateY(-14px) rotate(-19deg) scale(1.08); z-index: 2; box-shadow: 0 14px 30px color-mix(in srgb, var(--wahrheit) 55%, transparent); }
+}
+@keyframes wp-hero-right {
+  0%, 50%, 100% { transform: translateX(24px) rotate(14deg); z-index: 1; }
+  62%, 88% { transform: translateX(28px) translateY(-14px) rotate(19deg) scale(1.08); z-index: 2; box-shadow: 0 14px 30px color-mix(in srgb, var(--pflicht) 55%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-wahrheit-pflicht .wp-hero-card { animation: none; }
+  .game-wahrheit-pflicht .wp-hero-wahrheit { transform: translateX(-24px) rotate(-14deg); }
+  .game-wahrheit-pflicht .wp-hero-pflicht { transform: translateX(24px) rotate(14deg); }
+}

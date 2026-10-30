@@ -1,0 +1,546 @@
+/* Alle Regeln beginnen mit .game-schaetzen, damit sie nur in diesem Spiel gelten. */
+
+/* Indigo als Akzent – im hellen Design dunkler, damit Text und Buttons lesbar bleiben */
+.game-schaetzen {
+  --accent: #4f46e5;
+  --accent-2: #6366f1;
+  --on-accent: #ffffff;
+  --gold: #f5b72e;
+  --band: rgba(245, 183, 46, .35);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .game-schaetzen {
+    --accent: #818cf8;
+    --accent-2: #c7d2fe;
+    --on-accent: #111433;
+  }
+}
+:root[data-theme="dark"] .game-schaetzen {
+  --accent: #818cf8;
+  --accent-2: #c7d2fe;
+  --on-accent: #111433;
+}
+
+.game-schaetzen .sz-small {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.game-schaetzen .sz-small:empty { display: none; }
+
+.game-schaetzen .sz-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.game-schaetzen .sz-gauge { width: 150px; }
+.game-schaetzen .sz-gauge svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.game-schaetzen .sz-gauge-track,
+.game-schaetzen .sz-gauge-fill {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+.game-schaetzen .sz-gauge-track { stroke: var(--line); }
+.game-schaetzen .sz-gauge-fill {
+  stroke: var(--accent);
+  stroke-dasharray: 1;
+  animation: sz-gauge-fill 3.2s ease-in-out infinite alternate;
+}
+@keyframes sz-gauge-fill {
+  from { stroke-dashoffset: .85; }
+  to { stroke-dashoffset: .12; }
+}
+.game-schaetzen .sz-gauge-needle {
+  transform-origin: 60px 62px;
+  animation: sz-needle 3.2s ease-in-out infinite alternate;
+}
+@keyframes sz-needle {
+  0% { transform: rotate(-62deg); }
+  70% { transform: rotate(68deg); }
+  80% { transform: rotate(56deg); }
+  100% { transform: rotate(64deg); }
+}
+.game-schaetzen .sz-gauge-needle path {
+  stroke: var(--text);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.game-schaetzen .sz-gauge-needle circle { fill: var(--gold); }
+
+.game-schaetzen .sz-title {
+  font-family: var(--font-display);
+  font-size: clamp(52px, 15vw, 74px);
+  line-height: .92;
+  letter-spacing: .02em;
+  color: var(--accent);
+}
+.game-schaetzen .sz-lede {
+  max-width: 36ch;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ---------- Frage ---------- */
+.game-schaetzen .sz-ask { gap: 14px; }
+
+.game-schaetzen .sz-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.game-schaetzen .sz-category {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.game-schaetzen .sz-qcard {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+/* Foto mit langsamem Zoom; ohne Bild ein Farbverlauf mit Emoji */
+.game-schaetzen .sz-photo {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 35%, var(--surface)), color-mix(in srgb, var(--gold) 30%, var(--surface)));
+}
+.game-schaetzen .sz-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .5s ease;
+  animation: sz-kenburns 14s ease-in-out infinite alternate;
+}
+.game-schaetzen .sz-photo img.is-loaded { opacity: 1; }
+@keyframes sz-kenburns {
+  from { transform: scale(1.02) translate(0, 0); }
+  to { transform: scale(1.14) translate(-2%, -2%); }
+}
+.game-schaetzen .sz-photo.is-fallback::before {
+  content: attr(data-emoji);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 64px;
+}
+
+.game-schaetzen .sz-question {
+  padding: 14px 18px 16px;
+  font-weight: 800;
+  font-size: clamp(19px, 5.4vw, 23px);
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+
+/* ---------- Schätzen ---------- */
+.game-schaetzen .sz-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.game-schaetzen .sz-who {
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+.game-schaetzen .sz-who b {
+  font-size: 18px;
+  color: var(--text);
+}
+.game-schaetzen .sz-value {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 13vw, 60px);
+  line-height: 1;
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.game-schaetzen .sz-slider {
+  position: relative;
+  height: 44px;
+}
+.game-schaetzen .sz-band {
+  position: absolute;
+  top: 12px;
+  height: 20px;
+  border-radius: 999px;
+  background: repeating-linear-gradient(-45deg, var(--band) 0 6px, transparent 6px 11px);
+  box-shadow: inset 0 0 0 1.5px var(--gold);
+  pointer-events: none;
+}
+
+.game-schaetzen .sz-range {
+  --fill: 50%;
+  position: relative;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.game-schaetzen .sz-range:focus-visible { outline: none; }
+.game-schaetzen .sz-range::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent)) 0 / var(--fill) 100% no-repeat, color-mix(in srgb, var(--line) 80%, transparent);
+}
+.game-schaetzen .sz-range::-moz-range-track {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent)) 0 / var(--fill) 100% no-repeat, color-mix(in srgb, var(--line) 80%, transparent);
+}
+.game-schaetzen .sz-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 34px;
+  height: 34px;
+  margin-top: -12px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35);
+  transition: transform .12s ease;
+}
+.game-schaetzen .sz-range::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35);
+}
+.game-schaetzen .sz-range:active::-webkit-slider-thumb { transform: scale(1.15); }
+.game-schaetzen .sz-range:focus-visible::-webkit-slider-thumb { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+
+.game-schaetzen .sz-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.game-schaetzen .sz-hint {
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.game-schaetzen .sz-hint span {
+  margin-right: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #3a2700;
+}
+
+.game-schaetzen .sz-type {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.game-schaetzen .sz-type:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.game-schaetzen .sz-type input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 0;
+  border: none;
+  background: none;
+  font: 600 17px var(--font-body);
+  color: var(--text);
+}
+.game-schaetzen .sz-type input:focus { outline: none; }
+.game-schaetzen .sz-type input::placeholder { color: var(--text-muted); font-weight: 500; }
+.game-schaetzen .sz-type span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.game-schaetzen .sz-progress {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.game-schaetzen .sz-progress li {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.game-schaetzen .sz-progress .is-done { border-color: var(--accent); color: var(--accent); }
+.game-schaetzen .sz-progress .is-now { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+
+/* ---------- Auflösung ---------- */
+.game-schaetzen .sz-reveal { gap: 12px; }
+
+.game-schaetzen .sz-qmini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.game-schaetzen .sz-qmini .sz-photo {
+  flex: none;
+  width: 76px;
+  border-radius: var(--radius-md);
+}
+.game-schaetzen .sz-qmini .sz-photo.is-fallback::before { font-size: 30px; }
+
+.game-schaetzen .sz-answer-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-top: 6px;
+}
+.game-schaetzen .sz-answer {
+  font-family: var(--font-display);
+  font-size: clamp(50px, 15vw, 72px);
+  line-height: 1;
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.game-schaetzen .is-done .sz-answer { color: var(--gold); }
+
+/* Zahlenstrahl mit Stecknadeln */
+.game-schaetzen .sz-line {
+  position: relative;
+  height: 104px;
+  margin: 0 14px;
+}
+.game-schaetzen .sz-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 78px;
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 80%, transparent);
+  overflow: hidden;
+}
+.game-schaetzen .sz-track-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-2), var(--gold));
+}
+
+.game-schaetzen .sz-flag {
+  position: absolute;
+  top: 66px;
+  z-index: 2;
+  transform: translateX(-50%);
+}
+.game-schaetzen .sz-flag span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--gold);
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+}
+.game-schaetzen .is-done .sz-flag span { box-shadow: 0 0 0 6px color-mix(in srgb, var(--gold) 30%, transparent), 0 4px 12px rgba(0, 0, 0, .3); }
+
+.game-schaetzen .sz-marker {
+  position: absolute;
+  top: calc(var(--row) * 24px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.game-schaetzen .sz-marker-pin {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--on-accent);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .3);
+}
+.game-schaetzen .sz-marker-pin::first-letter { text-transform: uppercase; }
+/* Stiel bis zum Zahlenstrahl */
+.game-schaetzen .sz-marker::after {
+  content: '';
+  width: 2px;
+  height: calc(46px - var(--row) * 24px);
+  background: var(--accent);
+  opacity: .6;
+}
+.game-schaetzen .sz-marker-name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.game-schaetzen .sz-marker.is-outside .sz-marker-pin { border-style: dashed; opacity: .75; }
+.game-schaetzen .is-done .sz-marker.is-winner .sz-marker-pin {
+  background: var(--gold);
+  color: #3a2700;
+}
+.game-schaetzen .is-done .sz-marker.is-winner::before {
+  content: '👑';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  z-index: 1;
+  font-size: 17px;
+  transform: translateX(2px) rotate(22deg);
+  animation: sz-crown .6s cubic-bezier(.3, 1.6, .5, 1);
+}
+@keyframes sz-crown {
+  from { transform: translate(2px, -14px) rotate(22deg) scale(.3); opacity: 0; }
+}
+
+.game-schaetzen .sz-after {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  visibility: hidden;
+}
+.game-schaetzen .sz-after.is-visible { visibility: visible; }
+
+.game-schaetzen .sz-rating {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1.05;
+  letter-spacing: .03em;
+  color: var(--accent);
+}
+.game-schaetzen .sz-rating small {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+
+.game-schaetzen .sz-results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.game-schaetzen .sz-results li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.game-schaetzen .sz-results li.is-best { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, var(--surface)); }
+.game-schaetzen .sz-res-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.game-schaetzen .sz-res-guess {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.game-schaetzen .sz-res-guess small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.game-schaetzen .sz-res-gain {
+  min-width: 3ch;
+  text-align: right;
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+
+.game-schaetzen .sz-fact {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.game-schaetzen .sz-fact span { flex: none; }
+
+/* ---------- Spielende ---------- */
+.game-schaetzen .sz-end {
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.game-schaetzen .sz-end-title {
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(46px, 14vw, 70px);
+  line-height: .95;
+  letter-spacing: .02em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-schaetzen .sz-gauge-fill,
+  .game-schaetzen .sz-gauge-needle,
+  .game-schaetzen .sz-photo img,
+  .game-schaetzen .is-done .sz-marker.is-winner::before { animation: none; }
+}

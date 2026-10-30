@@ -1,0 +1,398 @@
+/* Alle Regeln beginnen mit .game-kiss-marry-kill, damit sie nur in diesem Spiel gelten. */
+
+/* Farben je Entscheidung – im hellen Design dunkler, damit sie auf weißem Grund lesbar bleiben */
+.game-kiss-marry-kill {
+  --kiss: #d62f78;
+  --marry: #a8740c;
+  --kill: #c42b2b;
+  --accent: #e0a52c;
+  --accent-2: #f5cf6b;
+  --on-choice: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .game-kiss-marry-kill {
+    --kiss: #ff6fae;
+    --marry: #f4c25a;
+    --kill: #ff5a52;
+    --accent: #f2b84b;
+    --accent-2: #ffe08a;
+    --on-choice: #17110a;
+  }
+}
+:root[data-theme="dark"] .game-kiss-marry-kill {
+  --kiss: #ff6fae;
+  --marry: #f4c25a;
+  --kill: #ff5a52;
+  --accent: #f2b84b;
+  --accent-2: #ffe08a;
+  --on-choice: #17110a;
+}
+
+.game-kiss-marry-kill .kmk-kiss { color: var(--kiss); }
+.game-kiss-marry-kill .kmk-marry { color: var(--marry); }
+.game-kiss-marry-kill .kmk-kill { color: var(--kill); }
+
+.game-kiss-marry-kill .kmk-intro {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+  text-align: center;
+}
+
+.game-kiss-marry-kill .kmk-title {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: clamp(52px, 14vw, 76px);
+  line-height: .92;
+  letter-spacing: .02em;
+}
+.game-kiss-marry-kill .kmk-title span { display: inline-block; }
+
+/* Schwebende Symbole rund um den Titel */
+.game-kiss-marry-kill .kmk-deco {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 170px;
+  pointer-events: none;
+}
+.game-kiss-marry-kill .kmk-deco i {
+  position: absolute;
+  font-style: normal;
+  font-size: 30px;
+  opacity: .85;
+  animation: kmk-float 4.2s ease-in-out infinite;
+}
+.game-kiss-marry-kill .kmk-deco i:nth-child(1) { left: 6%; top: 18px; --tilt: -14deg; }
+.game-kiss-marry-kill .kmk-deco i:nth-child(2) { right: 7%; top: 4px; --tilt: 12deg; animation-delay: -1.4s; }
+.game-kiss-marry-kill .kmk-deco i:nth-child(3) { right: 20%; top: 62px; --tilt: -8deg; animation-delay: -2.8s; font-size: 26px; }
+@keyframes kmk-float {
+  0%, 100% { transform: translateY(0) rotate(var(--tilt)); }
+  50% { transform: translateY(-10px) rotate(calc(var(--tilt) * -1)); }
+}
+
+.game-kiss-marry-kill .kmk-lede {
+  max-width: 36ch;
+  margin-inline: auto;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Wer gerade entscheidet: Name in den drei Farben, springt bei jeder Runde neu herein */
+.game-kiss-marry-kill .kmk-turn {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: .03em;
+}
+/* nur bei einer neuen Runde hereinspringen, nicht beim Austauschen einer Karte */
+.game-kiss-marry-kill .kmk-turn.is-new { animation: kmk-turn-in .5s cubic-bezier(.3, .8, .3, 1.4) backwards; }
+.game-kiss-marry-kill .kmk-turn b {
+  font-weight: inherit;
+  background: linear-gradient(90deg, var(--kiss), var(--marry), var(--kill));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@keyframes kmk-turn-in {
+  from { opacity: 0; transform: scale(.6) rotate(-4deg); }
+}
+
+/* ---------- Runde ---------- */
+.game-kiss-marry-kill .kmk-round { gap: 16px; }
+
+.game-kiss-marry-kill .kmk-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+  text-align: center;
+}
+
+.game-kiss-marry-kill .kmk-instruction {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.game-kiss-marry-kill .is-complete .kmk-instruction {
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--kiss) 18%, transparent), color-mix(in srgb, var(--marry) 18%, transparent), color-mix(in srgb, var(--kill) 18%, transparent));
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Fertig entschieden: „Nächste Runde“ pulsiert sanft */
+.game-kiss-marry-kill .is-complete [data-next] { animation: kmk-ready 1.6s ease-in-out infinite; }
+@keyframes kmk-ready {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  50% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+
+.game-kiss-marry-kill .kmk-names {
+  flex: 1;
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.game-kiss-marry-kill .kmk-card {
+  --choice: var(--line);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  transition: border-color .25s ease, box-shadow .25s ease, background-color .35s ease;
+}
+.game-kiss-marry-kill .kmk-card.is-acting { z-index: 1; }
+.game-kiss-marry-kill .kmk-card[data-assigned="kiss"] { --choice: var(--kiss); }
+.game-kiss-marry-kill .kmk-card[data-assigned="marry"] { --choice: var(--marry); }
+.game-kiss-marry-kill .kmk-card[data-assigned="kill"] { --choice: var(--kill); }
+.game-kiss-marry-kill .kmk-card[data-assigned] {
+  border-color: var(--choice);
+  background-color: color-mix(in srgb, var(--choice) 9%, var(--surface));
+  box-shadow: inset 0 0 0 1px var(--choice), var(--shadow);
+}
+
+/* Effekt-Ebene der Karte (Glanz bei Marry, roter Blitz bei Kill), an den Kartenrand geschnitten */
+.game-kiss-marry-kill .kmk-card-fx {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.game-kiss-marry-kill .kmk-sheen {
+  position: absolute;
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 236, 170, .6), transparent);
+}
+.game-kiss-marry-kill .kmk-flash {
+  position: absolute;
+  inset: 0;
+  background: var(--kill);
+}
+
+.game-kiss-marry-kill .kmk-card-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Porträt: Foto von Wikipedia, darunter die Initialen als Platzhalter und Ersatz */
+.game-kiss-marry-kill .kmk-portrait {
+  position: relative;
+  flex: none;
+  display: flex;
+}
+.game-kiss-marry-kill .kmk-photo {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: box-shadow .3s ease;
+}
+.game-kiss-marry-kill .kmk-card[data-assigned] .kmk-photo {
+  box-shadow: inset 0 0 0 2px var(--choice);
+}
+.game-kiss-marry-kill .kmk-card[data-assigned="kiss"] .kmk-photo {
+  box-shadow: inset 0 0 0 2px var(--choice), 0 0 20px -2px var(--kiss);
+}
+
+/* Marry: goldener Schimmer, der langsam übers Foto zieht */
+.game-kiss-marry-kill .kmk-photo::before,
+.game-kiss-marry-kill .kmk-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+.game-kiss-marry-kill .kmk-photo::before {
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 232, 160, .55) 50%, transparent 65%) 0 0 / 260% 100%;
+}
+.game-kiss-marry-kill .kmk-card[data-assigned="marry"] .kmk-photo::before {
+  opacity: 1;
+  animation: kmk-shimmer 3s ease-in-out infinite;
+}
+@keyframes kmk-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -60% 0; }
+}
+
+/* Kill: Foto wird grau mit rotem Schleier, darüber ein X */
+.game-kiss-marry-kill .kmk-photo::after {
+  background: var(--kill);
+  mix-blend-mode: multiply;
+}
+.game-kiss-marry-kill .kmk-card[data-assigned="kill"] .kmk-photo::after { opacity: .4; }
+.game-kiss-marry-kill .kmk-photo img { transition: filter .45s ease; }
+.game-kiss-marry-kill .kmk-card[data-assigned="kill"] .kmk-photo img { filter: grayscale(1) contrast(1.1) brightness(.85); }
+.game-kiss-marry-kill .kmk-card[data-assigned="kill"] .kmk-initials { opacity: .4; }
+
+.game-kiss-marry-kill .kmk-slash {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.game-kiss-marry-kill .kmk-slash line {
+  stroke: var(--kill);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 64;
+  stroke-dashoffset: 64;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .45));
+  transition: stroke-dashoffset .16s ease-in;
+}
+.game-kiss-marry-kill .kmk-card[data-assigned="kill"] .kmk-slash line { stroke-dashoffset: 0; }
+.game-kiss-marry-kill .kmk-card[data-assigned="kill"] .kmk-slash line + line { transition-delay: .12s; }
+
+/* Symbol der Wahl, schräg auf der Fotoecke */
+.game-kiss-marry-kill .kmk-mark {
+  position: absolute;
+  right: -11px;
+  bottom: -9px;
+  z-index: 3;
+  font-size: 30px;
+  line-height: 1;
+  transform: rotate(-12deg);
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .35));
+  pointer-events: none;
+}
+
+.game-kiss-marry-kill .kmk-particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  font-size: 22px;
+  line-height: 1;
+  pointer-events: none;
+}
+.game-kiss-marry-kill .kmk-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+}
+.game-kiss-marry-kill .kmk-initials {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+}
+
+.game-kiss-marry-kill .kmk-card-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.game-kiss-marry-kill .kmk-name {
+  font-family: var(--font-display);
+  transition: opacity .3s ease;
+  font-size: clamp(28px, 8.5vw, 36px);
+  line-height: 1;
+  letter-spacing: .02em;
+  overflow-wrap: anywhere;
+}
+
+.game-kiss-marry-kill .kmk-card[data-assigned="kill"] .kmk-name {
+  opacity: .75;
+  text-decoration: line-through;
+  text-decoration-color: var(--kill);
+  text-decoration-thickness: 3px;
+}
+
+.game-kiss-marry-kill .kmk-category {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.game-kiss-marry-kill .kmk-swap {
+  appearance: none;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.game-kiss-marry-kill .kmk-swap svg {
+  width: 17px;
+  height: 17px;
+}
+
+.game-kiss-marry-kill .kmk-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.game-kiss-marry-kill .kmk-action {
+  --c: var(--line-strong);
+  appearance: none;
+  padding: 10px 4px 8px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1;
+  letter-spacing: .06em;
+  color: var(--c);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.game-kiss-marry-kill .kmk-action[data-action="kiss"] { --c: var(--kiss); }
+.game-kiss-marry-kill .kmk-action[data-action="marry"] { --c: var(--marry); }
+.game-kiss-marry-kill .kmk-action[data-action="kill"] { --c: var(--kill); }
+.game-kiss-marry-kill .kmk-action[aria-pressed="true"] {
+  background: var(--c);
+  border-color: var(--c);
+  color: var(--on-choice);
+}
+
+.game-kiss-marry-kill .kmk-credit {
+  margin-top: -8px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: .8;
+}

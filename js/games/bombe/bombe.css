@@ -1,0 +1,480 @@
+/* Alle Regeln beginnen mit .game-bombe, damit sie nur in diesem Spiel gelten. */
+
+.game-bombe .bombe-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.game-bombe .bombe-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 13vw, 72px);
+  line-height: .92;
+  letter-spacing: .02em;
+}
+.game-bombe .bombe-title span { color: var(--accent); }
+
+.game-bombe .bombe-lede {
+  max-width: 36ch;
+  margin-inline: auto;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.game-bombe .bombe-fuse-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.game-bombe .bombe-fuse-text {
+  font-size: 14.5px;
+  color: var(--text-muted);
+}
+.game-bombe .bombe-fuse-text b {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.game-bombe .bombe-track {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.game-bombe .bombe-track-range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  transition: left .3s ease, width .3s ease;
+}
+
+.game-bombe .bombe-track-scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ---------- Runde ---------- */
+.game-bombe .bombe-round { gap: 22px; }
+
+.game-bombe .bombe-category {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.game-bombe .bombe-card {
+  width: 100%;
+  padding: 30px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.game-bombe .bombe-category-text {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 9vw, 44px);
+  line-height: 1.02;
+  letter-spacing: .01em;
+  text-wrap: balance;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+/* Das ganze Feld ist ein einziger Button: Tippen irgendwo darin = Weitergabe */
+.game-bombe .bombe-field {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 16px 22px;
+  overflow: hidden;
+  appearance: none;
+  background: var(--surface-2);
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+.game-bombe .bombe-field:active { border-color: var(--accent); }
+
+.game-bombe .bombe-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.game-bombe .bombe-stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+}
+
+.game-bombe .bombe-field-hint {
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+/* Rote Gefahren-Vignette, pulsiert gegen Ende mit jedem Tick */
+.game-bombe .bombe-danger {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(232, 53, 43, .55));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.game-bombe .bombe-svg {
+  --heat: 0;
+  width: 220px;
+  height: 220px;
+  overflow: visible;
+  transform-origin: 50% 60%;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .3));
+}
+
+/* Glänzend schwarze Bombe, die mit der Zeit rot glüht */
+.game-bombe .bombe-stop-light { stop-color: color-mix(in srgb, #ff8a5c calc(var(--heat) * 85%), #74737f); }
+.game-bombe .bombe-stop-mid { stop-color: color-mix(in srgb, #c4261a calc(var(--heat) * 80%), #2b2a31); }
+.game-bombe .bombe-stop-dark { stop-color: color-mix(in srgb, #5e0b06 calc(var(--heat) * 70%), #0c0b0f); }
+.game-bombe .bombe-body {
+  stroke: rgba(0, 0, 0, .55);
+  stroke-width: 2;
+}
+.game-bombe .bombe-shine {
+  fill: #ffffff;
+  opacity: .32;
+}
+.game-bombe .bombe-floor { fill: rgba(0, 0, 0, .28); }
+.game-bombe .bombe-glow {
+  fill: none;
+  stroke: #ff5a2e;
+  stroke-width: 6;
+  opacity: 0;
+  filter: blur(3px);
+}
+.game-bombe .bombe-cap {
+  stroke: #33363b;
+  stroke-width: 1.5;
+}
+
+/* Zündschnur: dunkles Seil mit hellerer Mittellinie, brennt von außen ab */
+.game-bombe .bombe-fuse {
+  fill: none;
+  stroke: #4a3424;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+.game-bombe .bombe-fuse-core {
+  fill: none;
+  stroke: #c19566;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: .8;
+}
+
+.game-bombe .bombe-spark {
+  fill: #fff3c4;
+  filter: drop-shadow(0 0 5px #ffd76a) drop-shadow(0 0 12px #ff7a2e) drop-shadow(0 0 22px #e8352b);
+  animation: bombe-flicker .12s steps(2, end) infinite;
+}
+@keyframes bombe-flicker {
+  50% { opacity: .7; }
+}
+
+.game-bombe .bombe-pass-count {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* ---------- Explosion ---------- */
+.game-bombe .bombe-boom {
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.game-bombe .bombe-boom-burst {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 300px;
+  height: 300px;
+  margin-bottom: -10px;
+}
+.game-bombe .bombe-star {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  overflow: visible;
+  animation: bombe-star-in .5s cubic-bezier(.2, 1.5, .4, 1) both, bombe-star-spin 14s linear .5s infinite;
+}
+.game-bombe .bombe-star polygon {
+  fill: #ffd76a;
+  stroke: #2b0d06;
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+.game-bombe .bombe-star .bombe-star-inner {
+  fill: #ff5a2e;
+  stroke: none;
+}
+@keyframes bombe-star-in {
+  from { transform: scale(.1) rotate(-40deg); opacity: 0; }
+}
+@keyframes bombe-star-spin {
+  to { transform: rotate(360deg); }
+}
+
+.game-bombe .bombe-boom-text {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: clamp(84px, 26vw, 124px);
+  line-height: .9;
+  letter-spacing: .03em;
+  color: #fff;
+  -webkit-text-stroke: 3px #2b0d06;
+  paint-order: stroke fill;
+  text-shadow: 5px 6px 0 #2b0d06;
+  transform: rotate(-7deg);
+  animation: bombe-boom-in .55s cubic-bezier(.2, 1.7, .4, 1) .08s both;
+}
+@keyframes bombe-boom-in {
+  from { transform: scale(3) rotate(-20deg); opacity: 0; }
+}
+
+/* Feuerball, Druckwelle und Rauch – liegen kurz über allem (unter Konfetti) */
+.game-bombe .bombe-blast {
+  position: fixed;
+  inset: 0;
+  z-index: 38;
+  overflow: hidden;
+  pointer-events: none;
+}
+.game-bombe .bombe-fireball,
+.game-bombe .bombe-shockwave {
+  position: absolute;
+  left: var(--cx);
+  top: var(--cy);
+  border-radius: 50%;
+}
+.game-bombe .bombe-fireball {
+  width: 90vmax;
+  height: 90vmax;
+  margin: -45vmax 0 0 -45vmax;
+  background: radial-gradient(circle, #fff6d8 0, #ffd76a 14%, #ff9b3d 30%, #e8352b 46%, rgba(110, 20, 10, .6) 58%, rgba(60, 10, 5, 0) 70%);
+  animation: bombe-fireball 1s cubic-bezier(.1, .8, .3, 1) forwards;
+}
+@keyframes bombe-fireball {
+  0% { transform: scale(.04); opacity: 1; }
+  45% { opacity: 1; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+.game-bombe .bombe-shockwave {
+  width: 40vmax;
+  height: 40vmax;
+  margin: -20vmax 0 0 -20vmax;
+  border: 10px solid rgba(255, 236, 190, .85);
+  animation: bombe-shock .75s cubic-bezier(.1, .7, .3, 1) forwards;
+}
+@keyframes bombe-shock {
+  from { transform: scale(.05); opacity: 1; }
+  to { transform: scale(3); opacity: 0; border-width: 1px; }
+}
+.game-bombe .bombe-smoke i {
+  position: absolute;
+  left: var(--cx);
+  top: var(--cy);
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(70, 64, 60, .75), rgba(70, 64, 60, 0) 70%);
+  opacity: 0;
+  animation: bombe-smoke 2.4s ease-out forwards;
+  animation-delay: calc(.25s + var(--i) * 70ms);
+}
+@keyframes bombe-smoke {
+  0% { transform: translate(0, 0) scale(.3); opacity: 0; }
+  20% { opacity: .85; }
+  100% { transform: translate(var(--x), -38vh) scale(calc(var(--s) * 3)); opacity: 0; }
+}
+
+.game-bombe .bombe-boom-sub {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.game-bombe .bombe-boom-sub b { color: var(--text); }
+
+.game-bombe .bombe-boom-actions {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding-top: 8px;
+}
+
+
+.game-bombe .bombe-starter {
+  align-self: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  font-size: 14px;
+  animation: bombe-starter-in .45s cubic-bezier(.3, .8, .3, 1.4) backwards;
+}
+.game-bombe .bombe-starter b { color: var(--accent); }
+@keyframes bombe-starter-in {
+  from { opacity: 0; transform: translateY(-10px) scale(.8); }
+}
+
+/* Wer hatte die Bombe? */
+.game-bombe .bombe-loser {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  animation: bombe-starter-in .45s cubic-bezier(.3, .8, .3, 1.4) .6s backwards;
+}
+.game-bombe .bombe-loser-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.game-bombe .bombe-loser-btn {
+  appearance: none;
+  padding: 10px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.game-bombe .bombe-loser-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.game-bombe .bombe-tally {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.game-bombe .bombe-tally:empty { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .game-bombe .bombe-spark,
+  .game-bombe .bombe-star,
+  .game-bombe .bombe-boom-text { animation: none; }
+  .game-bombe .bombe-blast { display: none; }
+}
+
+/* ---------- Startbild: tickende Bombe ---------- */
+.game-bombe .bombe-hero {
+  align-self: center;
+  width: 150px;
+  height: 140px;
+  animation: bombe-hero-in .7s cubic-bezier(.2, .8, .3, 1.3) backwards;
+}
+.game-bombe .bombe-hero svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.game-bombe .bombe-hero-floor {
+  fill: rgba(0, 0, 0, .3);
+  animation: bombe-hero-floor .9s ease-in-out infinite;
+}
+/* Die Bombe zuckt im Sekundentakt, als würde sie ticken */
+.game-bombe .bombe-hero-body {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bombe-hero-tick .9s ease-in-out infinite;
+}
+.game-bombe .bombe-hero-fuse {
+  fill: none;
+  stroke: #8a6a45;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.game-bombe .bombe-hero-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bombe-hero-spark .18s steps(2, end) infinite alternate;
+}
+.game-bombe .bombe-hero-spark path {
+  stroke: #ffd166;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.game-bombe .bombe-hero-spark circle:first-of-type { fill: #ff9f1c; }
+.game-bombe .bombe-hero-ember {
+  fill: #ffb703;
+  animation: bombe-hero-ember .8s ease-out infinite;
+  animation-delay: calc(var(--i) * .16s);
+}
+@keyframes bombe-hero-in {
+  from { opacity: 0; transform: translateY(-40px) rotate(-20deg); }
+}
+@keyframes bombe-hero-tick {
+  0%, 60%, 100% { transform: none; }
+  70% { transform: scale(1.04, .96) rotate(-2deg); }
+  82% { transform: scale(.98, 1.03) rotate(2deg); }
+}
+@keyframes bombe-hero-floor {
+  0%, 60%, 100% { transform: none; }
+  70% { transform: scaleX(1.06); }
+}
+@keyframes bombe-hero-spark {
+  from { transform: scale(.8) rotate(0deg); opacity: .85; }
+  to { transform: scale(1.2) rotate(30deg); opacity: 1; }
+}
+@keyframes bombe-hero-ember {
+  from { transform: translate(0, 0); opacity: 1; }
+  to { transform: translate(var(--x), var(--y)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-bombe .bombe-hero-ember { display: none; }
+}

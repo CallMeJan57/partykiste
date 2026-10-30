@@ -1,0 +1,486 @@
+/* Alle Regeln beginnen mit .game-song-raten, damit sie nur in diesem Spiel gelten. */
+
+/* Violett als Akzent – im hellen Design dunkler, damit Text und Buttons lesbar bleiben */
+.game-song-raten {
+  --accent: #6d4ae0;
+  --accent-2: #9b7bff;
+  --on-accent: #ffffff;
+  --vinyl: #15121c;
+  --vinyl-groove: #241f30;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .game-song-raten {
+    --accent: #9b7bff;
+    --accent-2: #c9b8ff;
+    --on-accent: #140f24;
+  }
+}
+:root[data-theme="dark"] .game-song-raten {
+  --accent: #9b7bff;
+  --accent-2: #c9b8ff;
+  --on-accent: #140f24;
+}
+
+.game-song-raten .sr-small {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.game-song-raten .sr-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+  text-align: center;
+}
+
+.game-song-raten .sr-title-big {
+  font-family: var(--font-display);
+  font-size: clamp(52px, 14vw, 76px);
+  line-height: .92;
+  letter-spacing: .02em;
+}
+.game-song-raten .sr-title-big span { color: var(--accent); }
+
+.game-song-raten .sr-lede {
+  max-width: 36ch;
+  margin-inline: auto;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ---------- Runde ---------- */
+.game-song-raten .sr-round { gap: 18px; }
+
+.game-song-raten .sr-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+  text-align: center;
+}
+.game-song-raten .sr-scores {
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-song-raten .sr-stage,
+.game-song-raten .sr-reveal {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 300px;
+}
+
+/* Schallplatte mit Fortschrittsring */
+.game-song-raten .sr-record {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(260px, 72vw);
+  aspect-ratio: 1;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.game-song-raten .sr-record:active .sr-disc { transform: scale(.97); }
+
+/* Lichtkranz, der beim Abspielen pulsiert */
+.game-song-raten .sr-record::before {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 40px 6px var(--accent);
+  transition: opacity .4s ease;
+}
+.game-song-raten .is-playing .sr-record::before {
+  opacity: .55;
+  animation: sr-halo 1.1s ease-in-out infinite alternate;
+}
+@keyframes sr-halo {
+  to { box-shadow: 0 0 60px 14px var(--accent-2); opacity: .8; }
+}
+
+/* Tonarm: schwenkt beim Abspielen auf die Platte */
+.game-song-raten .sr-arm {
+  position: absolute;
+  top: -7%;
+  right: -9%;
+  width: 24%;
+  overflow: visible;
+  transform-origin: 56.7% 12.5%;
+  transform: rotate(-16deg);
+  transition: transform .6s cubic-bezier(.3, 1.3, .5, 1);
+  filter: drop-shadow(2px 6px 6px rgba(0, 0, 0, .4));
+  pointer-events: none;
+}
+.game-song-raten .is-playing .sr-arm { transform: rotate(2deg); }
+.game-song-raten .sr-arm-base { fill: #9aa0a8; stroke: #5d636b; stroke-width: 2; }
+.game-song-raten .sr-arm-pin { fill: #e9ecef; }
+.game-song-raten .sr-arm-rod {
+  fill: none;
+  stroke: #d4d8dd;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.game-song-raten .sr-arm-head { fill: #2a2733; stroke: #9aa0a8; stroke-width: 1.5; }
+
+/* Equalizer unter der Platte */
+.game-song-raten .sr-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  width: min(250px, 70vw);
+  height: 46px;
+}
+.game-song-raten .sr-eq i {
+  flex: 1;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  transform-origin: 50% 100%;
+  transform: scaleY(.1);
+  opacity: .35;
+  transition: transform .4s ease, opacity .4s ease;
+}
+.game-song-raten .is-playing .sr-eq i {
+  opacity: 1;
+  animation: sr-eq var(--speed) ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -41ms);
+}
+@keyframes sr-eq {
+  from { transform: scaleY(.12); }
+  to { transform: scaleY(var(--peak)); }
+}
+
+/* Aufsteigende Noten */
+.game-song-raten .sr-note {
+  position: absolute;
+  z-index: 2;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent-2);
+  text-shadow: 0 0 10px var(--accent);
+  pointer-events: none;
+}
+
+/* Laden: Platte dreht langsam, Pünktchen laufen */
+.game-song-raten .sr-loading .sr-disc { animation: sr-spin 4s linear infinite; }
+.game-song-raten .sr-searching::after {
+  content: '...';
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: sr-dots 1.2s steps(4, end) infinite;
+}
+@keyframes sr-dots {
+  to { width: 1.1em; }
+}
+
+/* Auflösung: Titel und Interpret Wort für Wort */
+.game-song-raten .sr-word {
+  display: inline-block;
+  animation: sr-word .45s cubic-bezier(.2, .9, .3, 1.3) backwards;
+  animation-delay: calc(var(--i) * 70ms + 380ms);
+}
+@keyframes sr-word {
+  from { opacity: 0; transform: translateY(14px) scale(.85); filter: blur(5px); }
+}
+
+.game-song-raten .sr-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.game-song-raten .sr-ring-track {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 5;
+}
+.game-song-raten .sr-ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.game-song-raten .sr-disc {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 88%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .14), transparent 42%),
+    repeating-radial-gradient(circle, var(--vinyl) 0 3px, var(--vinyl-groove) 3px 4px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .35);
+  transition: transform .12s ease;
+}
+.game-song-raten .is-playing .sr-disc {
+  animation: sr-spin 2.6s linear infinite;
+}
+@keyframes sr-spin {
+  to { transform: rotate(360deg); }
+}
+
+.game-song-raten .sr-label {
+  display: grid;
+  place-items: center;
+  width: 38%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, var(--vinyl) 0 5%, var(--accent) 6%);
+  color: var(--on-accent);
+}
+.game-song-raten .sr-label svg {
+  width: 44%;
+  height: 44%;
+}
+
+.game-song-raten .sr-label-loading {
+  background: var(--accent);
+  animation: sr-pulse 1s ease-in-out infinite alternate;
+}
+@keyframes sr-pulse {
+  from { opacity: .45; transform: scale(.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.game-song-raten .sr-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.game-song-raten .sr-hint {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.game-song-raten .sr-actions {
+  display: grid;
+  gap: 10px;
+}
+.game-song-raten .sr-length {
+  font-weight: 500;
+  opacity: .75;
+}
+
+.game-song-raten .sr-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+/* ---------- Auflösung ---------- */
+.game-song-raten .sr-answer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+.game-song-raten .sr-answer-title {
+  font-family: var(--font-display);
+  font-size: clamp(34px, 10vw, 46px);
+  line-height: 1;
+  letter-spacing: .02em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.game-song-raten .sr-answer-artist {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--accent);
+}
+
+.game-song-raten .sr-award {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.game-song-raten .sr-award-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.game-song-raten .sr-award-btn {
+  position: relative;
+  appearance: none;
+  padding: 12px 18px;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.game-song-raten .sr-award-btn:active {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.game-song-raten .sr-award-btn.is-picked {
+  background: var(--accent);
+  color: var(--on-accent);
+  transform: scale(1.08);
+  transition: transform .2s cubic-bezier(.3, 1.6, .5, 1);
+}
+.game-song-raten .sr-plus {
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: var(--accent);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .25);
+  pointer-events: none;
+}
+.game-song-raten .sr-award-none {
+  border-color: var(--line);
+  background: none;
+  color: var(--text-muted);
+}
+
+/* ---------- Meldungen und Ergebnis ---------- */
+.game-song-raten .sr-message {
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.game-song-raten .sr-message-title {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 12vw, 60px);
+  line-height: .95;
+  letter-spacing: .02em;
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-song-raten .is-playing .sr-record::before,
+  .game-song-raten .is-playing .sr-eq i,
+  .game-song-raten .sr-loading .sr-disc,
+  .game-song-raten .sr-searching::after,
+  .game-song-raten .sr-word { animation: none; }
+  .game-song-raten .sr-arm { transition: none; }
+}
+
+/* ---------- Startbild: drehende Schallplatte ---------- */
+.game-song-raten .sr-hero {
+  position: relative;
+  align-self: center;
+  width: 180px;
+  height: 140px;
+  animation: sr-hero-in .7s cubic-bezier(.2, .8, .3, 1.3) backwards;
+}
+.game-song-raten .sr-hero-glow {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 40%, transparent), transparent 70%);
+  animation: sr-hero-pulse 2.2s ease-in-out infinite;
+}
+.game-song-raten .sr-hero-disc,
+.game-song-raten .sr-hero-shine {
+  position: absolute;
+  left: 20px;
+  top: 10px;
+  width: 120px;
+  height: 120px;
+}
+.game-song-raten .sr-hero-disc {
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .4));
+  animation: sr-hero-spin 2.4s linear infinite;
+}
+.game-song-raten .sr-hero-vinyl { fill: var(--vinyl); }
+.game-song-raten .sr-hero-groove {
+  fill: none;
+  stroke: var(--vinyl-groove);
+  stroke-width: 1.5;
+}
+.game-song-raten .sr-hero-label { fill: var(--accent); }
+.game-song-raten .sr-hero-label-2 { fill: var(--accent-2); }
+/* Glanz bleibt stehen, während die Rillen darunter kreisen */
+.game-song-raten .sr-hero-shine {
+  border-radius: 50%;
+  background: conic-gradient(from 300deg, transparent 0 15deg, rgba(255, 255, 255, .16) 35deg, transparent 55deg 180deg, rgba(255, 255, 255, .1) 215deg, transparent 235deg);
+  pointer-events: none;
+}
+.game-song-raten .sr-hero-arm {
+  position: absolute;
+  right: 14px;
+  top: 0;
+  width: 46px;
+  height: 100px;
+  overflow: visible;
+  transform-origin: 76% 11%;
+  animation: sr-hero-arm 2.4s ease-in-out infinite;
+}
+.game-song-raten .sr-hero-arm-base { fill: #9aa0a8; stroke: #5d636b; stroke-width: 2; }
+.game-song-raten .sr-hero-arm-rod {
+  fill: none;
+  stroke: #c9ced6;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.game-song-raten .sr-hero-arm-head { fill: #2a2733; stroke: #9aa0a8; stroke-width: 1.5; }
+.game-song-raten .sr-hero-note {
+  position: absolute;
+  left: 118px;
+  top: 70px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent-2);
+  opacity: 0;
+  animation: sr-hero-note 3.2s ease-out infinite;
+  animation-delay: calc(var(--i) * .8s);
+}
+.game-song-raten .sr-hero-note:nth-of-type(even) { color: var(--accent); }
+@keyframes sr-hero-in {
+  from { opacity: 0; transform: scale(.6) rotate(-40deg); }
+}
+@keyframes sr-hero-spin { to { transform: rotate(360deg); } }
+@keyframes sr-hero-pulse {
+  50% { transform: scale(1.08); opacity: .7; }
+}
+/* Tonarm liegt auf den äußeren Rillen und wippt leicht mit */
+@keyframes sr-hero-arm {
+  0%, 100% { transform: rotate(12deg); }
+  50% { transform: rotate(13.5deg); }
+}
+@keyframes sr-hero-note {
+  0% { opacity: 0; transform: translate(0, 0) scale(.5) rotate(-10deg); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(42px, -72px) scale(1.15) rotate(18deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-song-raten .sr-hero-note { display: none; }
+}

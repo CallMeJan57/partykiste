@@ -1,0 +1,412 @@
+/* Handschrift für die Begriffe; ohne Internet greift die Ersatzschrift. */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap');
+
+/* Alle Regeln beginnen mit .game-blind-zeichnen, damit sie nur in diesem Spiel gelten. */
+
+/* Bleistiftgelb als Akzent – im hellen Design dunkler, damit Text und Buttons lesbar bleiben */
+.game-blind-zeichnen {
+  --accent: #a16207;
+  --accent-2: #ca8a04;
+  --on-accent: #ffffff;
+  --iris: #2f9e8f;
+  --lid: #f6c39b;
+  --paper: #fffdf5;
+  --paper-line: #cfe0f5;
+  --paper-margin: #f3a3a3;
+  --ink: #1f2a44;
+  --urgent: #e5372b;
+  --hand: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .game-blind-zeichnen {
+    --accent: #facc15;
+    --accent-2: #fde68a;
+    --on-accent: #2a2205;
+    --urgent: #ff5a4e;
+  }
+}
+:root[data-theme="dark"] .game-blind-zeichnen {
+  --accent: #facc15;
+  --accent-2: #fde68a;
+  --on-accent: #2a2205;
+  --urgent: #ff5a4e;
+}
+
+.game-blind-zeichnen .bz-small {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.game-blind-zeichnen .bz-small:empty { display: none; }
+.game-blind-zeichnen .bz-center { text-align: center; }
+
+/* ---------- Auge ---------- */
+.game-blind-zeichnen .bz-eye-wrap {
+  position: relative;
+  width: min(190px, 52vw);
+  margin-inline: auto;
+}
+.game-blind-zeichnen .bz-eye {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.game-blind-zeichnen .bz-eye-white { fill: #ffffff; }
+.game-blind-zeichnen .bz-iris { fill: var(--iris); }
+.game-blind-zeichnen .bz-pupil { fill: #17181c; }
+.game-blind-zeichnen .bz-glint { fill: #ffffff; }
+.game-blind-zeichnen .bz-eye-look {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.game-blind-zeichnen .bz-lid {
+  fill: var(--lid);
+  transform-box: fill-box;
+  transform: scaleY(0);
+  transition: transform .4s cubic-bezier(.6, 0, .3, 1);
+}
+.game-blind-zeichnen .bz-lid-top { transform-origin: top; }
+.game-blind-zeichnen .bz-lid-bottom { transform-origin: bottom; }
+.game-blind-zeichnen .is-closed .bz-lid { transform: scaleY(1); }
+
+.game-blind-zeichnen .bz-eye-outline {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 5;
+}
+.game-blind-zeichnen .bz-lashes {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity .15s ease .25s;
+}
+.game-blind-zeichnen .is-closed .bz-lashes { opacity: 1; }
+
+/* Im Leerlauf blinzelt das Auge und schaut sich um */
+.game-blind-zeichnen .is-idle .bz-lid { animation: bz-blink 4.2s infinite; }
+.game-blind-zeichnen .is-idle .bz-eye-look { animation: bz-look 6s ease-in-out infinite; }
+@keyframes bz-blink {
+  0%, 90%, 100% { transform: scaleY(0); }
+  94% { transform: scaleY(1); }
+}
+@keyframes bz-look {
+  0%, 15%, 100% { transform: translate(0, 0); }
+  25%, 40% { transform: translate(-22px, 4px); }
+  55%, 70% { transform: translate(20px, -6px); }
+  80% { transform: translate(0, 8px); }
+}
+
+/* Überrascht beim Aufwachen */
+.game-blind-zeichnen .is-surprised .bz-eye-look { animation: bz-surprise .6s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes bz-surprise {
+  0% { transform: scale(.6); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* Zzz beim Zeichnen */
+.game-blind-zeichnen .bz-zzz {
+  position: absolute;
+  right: -4px;
+  top: -18px;
+  display: none;
+  font-family: var(--hand);
+  font-weight: 700;
+  color: var(--accent);
+}
+.game-blind-zeichnen .is-sleeping .bz-zzz { display: block; }
+.game-blind-zeichnen .bz-zzz i {
+  position: absolute;
+  font-style: normal;
+  opacity: 0;
+  animation: bz-zzz 2.4s ease-out infinite;
+}
+.game-blind-zeichnen .bz-zzz i:nth-child(1) { font-size: 20px; }
+.game-blind-zeichnen .bz-zzz i:nth-child(2) { font-size: 26px; animation-delay: .8s; }
+.game-blind-zeichnen .bz-zzz i:nth-child(3) { font-size: 34px; animation-delay: 1.6s; }
+@keyframes bz-zzz {
+  0% { transform: translate(0, 20px) rotate(-10deg); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate(26px, -26px) rotate(12deg); opacity: 0; }
+}
+
+/* ---------- Papier mit Handschrift ---------- */
+.game-blind-zeichnen .bz-paper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 26px 20px 30px 34px;
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, transparent 22px, var(--paper-margin) 22px 24px, transparent 24px),
+    repeating-linear-gradient(180deg, transparent 0 31px, var(--paper-line) 31px 32px),
+    var(--paper);
+  color: var(--ink);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .22), 0 2px 4px rgba(0, 0, 0, .12);
+  transform: rotate(-1.5deg);
+}
+/* Klebestreifen oben */
+.game-blind-zeichnen .bz-paper::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: calc(50% - 46px);
+  width: 92px;
+  height: 26px;
+  background: rgba(255, 236, 170, .75);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .12);
+  transform: rotate(3deg);
+}
+
+.game-blind-zeichnen .bz-category {
+  border-color: color-mix(in srgb, var(--ink) 30%, transparent);
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
+  background: rgba(255, 255, 255, .6);
+}
+
+.game-blind-zeichnen .bz-writing {
+  position: relative;
+  max-width: 100%;
+  margin-top: 6px;
+}
+.game-blind-zeichnen .bz-word {
+  display: block;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: clamp(46px, 14vw, 70px);
+  line-height: 1.05;
+  text-align: center;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+.game-blind-zeichnen .bz-pencil {
+  position: absolute;
+  left: -11px;
+  bottom: 6px;
+  width: 22px;
+  height: 55px;
+  transform-origin: 50% 99%;
+  transform: rotate(32deg);
+  pointer-events: none;
+  filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, .25));
+}
+
+.game-blind-zeichnen .bz-underline {
+  width: 70%;
+  height: 14px;
+  overflow: visible;
+}
+.game-blind-zeichnen .bz-underline path {
+  fill: none;
+  stroke: var(--paper-margin);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.game-blind-zeichnen .bz-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+  text-align: center;
+}
+.game-blind-zeichnen .bz-intro .bz-eye-wrap { width: 140px; }
+
+.game-blind-zeichnen .bz-title {
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: clamp(54px, 16vw, 76px);
+  line-height: .95;
+  color: var(--accent);
+  transform: rotate(-2deg);
+}
+
+.game-blind-zeichnen .bz-lede {
+  max-width: 36ch;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ---------- Ablauf ---------- */
+.game-blind-zeichnen .bz-term .bz-paper {
+  min-height: 240px;
+  justify-content: center;
+  margin-block: auto;
+}
+.game-blind-zeichnen .bz-turn,
+.game-blind-zeichnen .bz-term,
+.game-blind-zeichnen .bz-drawing,
+.game-blind-zeichnen .bz-guess { gap: 18px; }
+
+.game-blind-zeichnen .bz-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.game-blind-zeichnen .bz-who {
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 14vw, 68px);
+  line-height: .95;
+  letter-spacing: .02em;
+  overflow-wrap: anywhere;
+}
+.game-blind-zeichnen .bz-scores {
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-blind-zeichnen .bz-call {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 10vw, 44px);
+  line-height: 1;
+  letter-spacing: .03em;
+  color: var(--accent);
+}
+
+.game-blind-zeichnen .bz-twist {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  border: 1.5px dashed var(--accent);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-weight: 800;
+  font-size: 18px;
+}
+.game-blind-zeichnen .bz-twist span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.game-blind-zeichnen .bz-twist.is-small { font-size: 15px; padding: 8px 12px; }
+
+.game-blind-zeichnen .bz-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.game-blind-zeichnen .bz-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+/* ---------- Zeichenzeit ---------- */
+.game-blind-zeichnen .bz-drawing .bz-eye-wrap { margin-top: 18px; }
+
+.game-blind-zeichnen .bz-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.game-blind-zeichnen .bz-seconds {
+  font-family: var(--font-display);
+  font-size: clamp(80px, 26vw, 120px);
+  line-height: .9;
+  font-variant-numeric: tabular-nums;
+}
+.game-blind-zeichnen .bz-bar {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.game-blind-zeichnen .bz-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  transform-origin: left center;
+}
+.game-blind-zeichnen .bz-clock.is-urgent .bz-seconds { color: var(--urgent); }
+.game-blind-zeichnen .bz-clock.is-urgent .bz-bar span { background: var(--urgent); }
+
+/* ---------- Raten ---------- */
+.game-blind-zeichnen .bz-reveal-slot { margin-block: auto; }
+.game-blind-zeichnen .bz-reveal-slot:empty { display: none; }
+.game-blind-zeichnen .bz-reveal-slot .bz-paper {
+  min-height: 220px;
+  justify-content: center;
+}
+
+.game-blind-zeichnen .bz-award {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.game-blind-zeichnen .bz-award-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.game-blind-zeichnen .bz-award-btn {
+  appearance: none;
+  padding: 12px 18px;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.game-blind-zeichnen .bz-award-btn:active {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.game-blind-zeichnen .bz-award-none {
+  border-color: var(--line);
+  background: none;
+  color: var(--text-muted);
+}
+
+/* ---------- Spielende ---------- */
+.game-blind-zeichnen .bz-end {
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.game-blind-zeichnen .bz-end-title {
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(46px, 14vw, 70px);
+  line-height: .95;
+  letter-spacing: .02em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-blind-zeichnen .is-idle .bz-lid,
+  .game-blind-zeichnen .is-idle .bz-eye-look,
+  .game-blind-zeichnen .is-surprised .bz-eye-look,
+  .game-blind-zeichnen .bz-zzz i { animation: none; }
+  .game-blind-zeichnen .bz-zzz i { opacity: 1; position: static; }
+  .game-blind-zeichnen .bz-lid { transition: none; }
+}

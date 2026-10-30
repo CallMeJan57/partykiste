@@ -1,0 +1,97 @@
+// Rätsel für „Emoji-Raten“ – je Eintrag [Emojis mit Leerzeichen getrennt, Lösung].
+// Die Emojis erscheinen nacheinander; Leerzeichen trennen sie, damit auch zusammengesetzte Emojis (👨‍🍳) heil bleiben.
+// Nur verbreitete Emojis verwenden (bis Emoji 13), sonst fehlen sie auf älteren Handys.
+
+export default {
+  woerter: {
+    label: 'Zusammengesetzte Wörter',
+    hint: 'Zwei Bilder, ein Wort',
+    puzzles: [
+      ['☀️ 🌸', 'Sonnenblume'], ['🏠 🔑', 'Hausschlüssel'], ['🍎 🌳', 'Apfelbaum'], ['❄️ 👨', 'Schneemann'],
+      ['🌧️ 🏹', 'Regenbogen'], ['🔥 🚒', 'Feuerwehr'], ['🌊 ⭐', 'Seestern'], ['🦷 🪥', 'Zahnbürste'],
+      ['🍫 🎂', 'Schokoladenkuchen'], ['🐻 🍬', 'Gummibärchen'], ['🏖️ 🏰', 'Sandburg'], ['🍺 ⛺', 'Bierzelt'],
+      ['☀️ 👓', 'Sonnenbrille'], ['🌧️ ☂️', 'Regenschirm'], ['🐶 🏠', 'Hundehütte'], ['🍕 🛵', 'Pizzabote'],
+      ['✈️ ⚓', 'Flughafen'], ['🧈 🍞', 'Butterbrot'], ['🍓 🍨', 'Erdbeereis'], ['🍯 🐝', 'Honigbiene'],
+      ['🌊 🐴', 'Seepferdchen'], ['🔑 🕳️', 'Schlüsselloch'], ['🐦 🏠', 'Vogelhaus'], ['🧀 🍰', 'Käsekuchen'],
+      ['🦶 ⚽', 'Fußball'], ['✋ 👜', 'Handtasche'], ['🥛 🍫', 'Milchschokolade'], ['📚 🐛', 'Bücherwurm'],
+      ['🏠 🐱', 'Hauskatze'], ['🐟 🥖', 'Fischbrötchen'],
+    ],
+  },
+  filme: {
+    label: 'Filme & Serien',
+    hint: 'Von Titanic bis Squid Game',
+    puzzles: [
+      ['🚢 🧊 💔', 'Titanic'], ['🦁 👑', 'Der König der Löwen'], ['🐟 🔍', 'Findet Nemo'], ['⚡ 👓 🧙', 'Harry Potter'],
+      ['🦖 🏝️', 'Jurassic Park'], ['💍 🌋', 'Der Herr der Ringe'], ['❄️ 👸', 'Die Eiskönigin'], ['🕷️ 👨', 'Spider-Man'],
+      ['🏴‍☠️ 🚢 💀', 'Fluch der Karibik'], ['👽 📞 🏠', 'E.T.'], ['🦇 👨', 'Batman'], ['👻 🚫', 'Ghostbusters'],
+      ['🧸 🤠 🚀', 'Toy Story'], ['🐼 🥋', 'Kung Fu Panda'], ['👹 💚 🧅', 'Shrek'], ['🏠 👦 🎄', 'Kevin – Allein zu Haus'],
+      ['🐀 👨‍🍳', 'Ratatouille'], ['🎈 🏠 👴', 'Oben'], ['🧜‍♀️ 🌊', 'Arielle, die Meerjungfrau'], ['🍫 🏭', 'Charlie und die Schokoladenfabrik'],
+      ['🌌 ⚔️ 🤖', 'Star Wars'], ['🦈 🏊', 'Der weiße Hai'], ['🦍 🏙️', 'King Kong'], ['🧪 👨‍🔬 💰', 'Breaking Bad'],
+      ['🦑 🎮 💰', 'Squid Game'], ['💰 🎭 🏦', 'Haus des Geldes'], ['🍩 🟡 👨‍👩‍👧‍👦', 'Die Simpsons'], ['🧽 🍍', 'SpongeBob'],
+      ['🐉 👑 ⚔️', 'Game of Thrones'], ['🚲 🔦 👾', 'Stranger Things'],
+    ],
+  },
+  sprueche: {
+    label: 'Sprichwörter & Redewendungen',
+    hint: 'Für Fortgeschrittene',
+    puzzles: [
+      ['🐦 ✋ 🕊️ 🏠', 'Lieber den Spatz in der Hand als die Taube auf dem Dach'], ['🍎 ⬇️ 🌳', 'Der Apfel fällt nicht weit vom Stamm'],
+      ['⏰ 💰', 'Zeit ist Geld'], ['🗣️ 🥈 🤐 🥇', 'Reden ist Silber, Schweigen ist Gold'],
+      ['🌅 🐦 🪱', 'Der frühe Vogel fängt den Wurm'], ['🐘 🏪 🍽️', 'Wie ein Elefant im Porzellanladen'],
+      ['💰 🐈 👜', 'Die Katze im Sack kaufen'], ['🍅 👀', 'Tomaten auf den Augen haben'],
+      ['🐷 🍀', 'Schwein haben'], ['✋ 🔥', 'Die Hand ins Feuer legen'],
+      ['☁️ 7️⃣', 'Auf Wolke sieben schweben'], ['🐸 🗣️', 'Einen Frosch im Hals haben'],
+      ['🌲 🌲 🌲 🙈', 'Den Wald vor lauter Bäumen nicht sehen'], ['🧂 🍲', 'Jemandem die Suppe versalzen'],
+      ['🦊 🐰 🌙', 'Wo sich Fuchs und Hase gute Nacht sagen'], ['🎁 🐴 👄', 'Einem geschenkten Gaul schaut man nicht ins Maul'],
+      ['🌹 🚫 🌵', 'Keine Rose ohne Dornen'], ['🐶 ⚔️ 🐱', 'Wie Hund und Katze'],
+      ['🐠 💧', 'Wie ein Fisch im Wasser'], ['🏰 ☁️ 🔨', 'Luftschlösser bauen'],
+      ['🐄 🧊 🚜', 'Die Kuh vom Eis holen'], ['⏳ 🩹', 'Die Zeit heilt alle Wunden'],
+      ['🎯 ⬛', 'Ins Schwarze treffen'], ['🥶 🦶', 'Kalte Füße bekommen'],
+      ['💸 🪟', 'Geld zum Fenster rauswerfen'], ['🌅 🥇 👄', 'Morgenstund hat Gold im Mund'],
+      ['🧈 👌', 'Alles in Butter'], ['🦉 ➡️ 🏛️', 'Eulen nach Athen tragen'],
+      ['🤕 🧱', 'Mit dem Kopf durch die Wand'], ['🤥 🦵', 'Lügen haben kurze Beine'],
+    ],
+  },
+  orte: {
+    label: 'Länder & Städte',
+    hint: 'Einmal um die Welt',
+    puzzles: [
+      ['🥐 🗼', 'Paris'], ['🍕 🍝 🛵', 'Italien'], ['🗽 🍎', 'New York'], ['🦘 🐨', 'Australien'],
+      ['🌷 🚲 🧀', 'Niederlande'], ['⛩️ 🍣', 'Japan'], ['🐼 🏯', 'China'], ['🍁 🏒', 'Kanada'],
+      ['🌮 🌵', 'Mexiko'], ['🎡 ☔ 💂', 'London'], ['🍫 ⌚ 🏔️', 'Schweiz'], ['🐫 🏜️ 🔺', 'Ägypten'],
+      ['🥘 💃 🐂', 'Spanien'], ['🛶 🎭', 'Venedig'], ['🎰 🌃', 'Las Vegas'], ['🎬 ⭐ 🌴', 'Hollywood'],
+      ['🐑 🥃 🏰', 'Schottland'], ['🍀 🍺', 'Irland'], ['🐘 🍛', 'Indien'], ['🦁 🦒 🌍', 'Afrika'],
+      ['🧊 🐧', 'Antarktis'], ['🌋 🧊', 'Island'], ['🐻 🧱', 'Berlin'], ['⚓ 🐟 🌧️', 'Hamburg'],
+      ['⛪ 🍺', 'Köln'], ['🍺 🥨 🎡', 'München'], ['🌺 🏄', 'Hawaii'], ['🦅 🍔 🏈', 'USA'],
+      ['🎻 🎼 🏰', 'Wien'], ['🧇 🍫 🍟', 'Belgien'],
+    ],
+  },
+  figuren: {
+    label: 'Märchen & Figuren',
+    hint: 'Von Rotkäppchen bis Pikachu',
+    puzzles: [
+      ['👸 🍎 💤', 'Schneewittchen'], ['👧 🔴 🐺', 'Rotkäppchen'], ['👦 👧 🍬 🏠', 'Hänsel und Gretel'], ['👸 🐸 💋', 'Der Froschkönig'],
+      ['👸 👠 🎃', 'Aschenputtel'], ['👸 🌹 💤', 'Dornröschen'], ['👱‍♀️ 💇‍♀️ 🏰', 'Rapunzel'], ['🐺 🐐 7️⃣', 'Der Wolf und die sieben Geißlein'],
+      ['🐴 🐶 🐱 🐓 🎶', 'Die Bremer Stadtmusikanten'], ['🧞 🪔', 'Aladdin'], ['🤥 👃 🪵', 'Pinocchio'], ['🧚‍♀️ 👦 ⏰ 🐊', 'Peter Pan'],
+      ['🐻 🍯 🎈', 'Winnie Puuh'], ['🌪️ 👠 🦁', 'Der Zauberer von Oz'], ['🐭 🧤', 'Micky Maus'], ['🐷 🐷 🐷 🐺', 'Die drei kleinen Schweinchen'],
+      ['🦆 💰', 'Dagobert Duck'], ['🐘 👂 ✈️', 'Dumbo'], ['🦌 🔴 🎅', 'Rudolph'], ['🎅 🛷', 'Weihnachtsmann'],
+      ['🐰 🥚', 'Osterhase'], ['🦷 🧚', 'Zahnfee'], ['🧛 🩸 🏰', 'Dracula'], ['🧟‍♂️ 🔩 ⚡', 'Frankenstein'],
+      ['🍄 👨‍🔧', 'Super Mario'], ['🟡 👻 🍒', 'Pac-Man'], ['🦔 💨 💍', 'Sonic'], ['⚡ 🐭', 'Pikachu'],
+      ['🔵 🍄', 'Die Schlümpfe'], ['🐱 👢', 'Der gestiefelte Kater'],
+    ],
+  },
+  party: {
+    label: 'Party & Alltag',
+    hint: 'Bierpong, Kater, Schlummertaste',
+    puzzles: [
+      ['🍺 🏓', 'Bierpong'], ['🎤 🎶', 'Karaoke'], ['🎆 🥂 🕛', 'Silvester'], ['💍 👰 🤵', 'Hochzeit'],
+      ['🎃 👻', 'Halloween'], ['🥳 🎂', 'Geburtstag'], ['😵 🍺 ☀️', 'Kater'], ['🍳 🥓 ☕', 'Frühstück'],
+      ['🏋️ 💪', 'Fitnessstudio'], ['📱 🔋 ❌', 'Akku leer'], ['🛒 🥦 🍞', 'Einkaufen'], ['🚿 🎤', 'Unter der Dusche singen'],
+      ['😴 ⏰ 🔁', 'Schlummertaste'], ['📺 📺 📺 🍿', 'Serienmarathon'], ['🍕 📞 🛵', 'Lieferdienst'], ['🎲 🃏', 'Spieleabend'],
+      ['🏕️ 🔥 🌭', 'Lagerfeuer'], ['🧳 ✈️ 🏖️', 'Urlaub'], ['☀️ 💤', 'Mittagsschlaf'], ['🚗 ⛽ 💸', 'Tanken'],
+      ['🍔 🍟 🥤', 'Fast Food'], ['🤳 🌅', 'Selfie'], ['🍷 🧀 🍇', 'Weinprobe'], ['🎳 🍻', 'Kegeln'],
+      ['🎢 😱', 'Achterbahn'], ['🐶 🦮 🌳', 'Gassi gehen'], ['💃 🕺 🎶', 'Tanzfläche'], ['🥶 🌊 🏊', 'Eisbaden'],
+      ['🎁 🎄', 'Bescherung'], ['🍾 🔄 💋', 'Flaschendrehen'],
+    ],
+  },
+};

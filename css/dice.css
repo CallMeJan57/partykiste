@@ -1,0 +1,444 @@
+/* Würfelbecher (js/dice/dice.js) – Fenster über der Startseite */
+
+/* Würfel-Knopf in der Kopfzeile: wackelt ab und zu, damit man ihn bemerkt */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dice-btn {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  animation: dice-btn-wiggle 6s ease-in-out infinite;
+}
+.dice-btn svg { width: 20px; height: 20px; }
+@keyframes dice-btn-wiggle {
+  0%, 86%, 100% { transform: rotate(0); }
+  89% { transform: rotate(-18deg) scale(1.08); }
+  92% { transform: rotate(14deg) scale(1.08); }
+  95% { transform: rotate(-6deg); }
+}
+
+html.dice-open { overflow: hidden; }
+
+.dice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 35; /* unter Konfetti (40), Blitz (50) und Hinweisen (60) */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 30%, rgba(30, 20, 10, .55), rgba(5, 4, 3, .78));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.dice-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 100dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px var(--gutter) calc(18px + env(safe-area-inset-bottom));
+  border-radius: 30px 30px 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 70%, var(--bg)), var(--bg) 40%);
+  box-shadow: 0 -16px 50px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+.dice-grabber {
+  align-self: center;
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+
+.dice-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.dice-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.dice-title {
+  font-family: var(--font-display);
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: .04em;
+}
+
+/* Anzahl 1–5 mit gleitendem Schieber */
+.dice-count {
+  --pos: 1;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.dice-count-thumb {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc((100% - 10px) / 5);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
+  transform: translateX(calc(var(--pos) * 100%));
+  transition: transform .35s cubic-bezier(.3, 1.4, .5, 1);
+}
+.dice-count button {
+  position: relative;
+  appearance: none;
+  height: 40px;
+  border: none;
+  background: none;
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--text-muted);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: color .25s ease, transform .12s ease;
+}
+.dice-count button:active { transform: scale(.92); }
+.dice-count button[aria-pressed="true"] { color: var(--on-accent); }
+
+/* Casino-Tisch: Filz, Goldeinlage, Holzrand und Lichtkegel */
+.dice-table {
+  position: relative;
+  min-height: 310px;
+  display: grid;
+  place-items: center;
+  padding: 34px 12px 28px;
+  border: 9px solid #5a3317;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 38%, #2f9a62, #1b6b42 50%, #0f4228 85%),
+    #1b6b42;
+  box-shadow:
+    inset 0 0 0 2px #2c1608,
+    inset 0 0 0 10px rgba(0, 0, 0, .08),
+    inset 0 0 0 11.5px rgba(245, 200, 105, .55),
+    inset 0 14px 34px rgba(0, 0, 0, .5),
+    0 1px 0 9px #7a4a22,
+    0 14px 30px rgba(0, 0, 0, .35);
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+/* feine Filzstruktur */
+.dice-table::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-radial-gradient(circle at 30% 20%, rgba(255, 255, 255, .03) 0 1px, transparent 1px 3px),
+    repeating-radial-gradient(circle at 70% 80%, rgba(0, 0, 0, .05) 0 1px, transparent 1px 4px);
+  pointer-events: none;
+}
+.dice-spot {
+  position: absolute;
+  inset: -20% -10% 30%;
+  background: radial-gradient(ellipse at 50% 30%, rgba(255, 250, 225, .16), transparent 60%);
+  pointer-events: none;
+}
+.is-rolling .dice-spot { animation: dice-spot .6s ease-in-out infinite alternate; }
+@keyframes dice-spot {
+  to { opacity: .55; }
+}
+
+/* Würfelbecher, der beim Wurf erscheint */
+.dice-cup-box {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  z-index: 1; /* unter den Würfeln – die fliegen ja aus dem Becher heraus */
+  width: 92px;
+  margin-left: -46px;
+  visibility: hidden;
+  pointer-events: none;
+}
+.dice-cup-box.is-on { visibility: visible; }
+.dice-cup {
+  display: block;
+  width: 100%;
+  transform-origin: 50% 90%;
+  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .45));
+}
+
+.dice-row {
+  --size: 110px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 26px 20px;
+  max-width: 100%;
+}
+.dice-row[data-count="1"] { --size: 140px; }
+.dice-row[data-count="2"] { --size: 116px; }
+.dice-row[data-count="3"] { --size: 88px; }
+.dice-row[data-count="4"] { --size: 96px; max-width: 250px; }
+.dice-row[data-count="5"] { --size: 80px; max-width: 300px; }
+
+/* Ein Würfel: Knopf › Wurfbahn › gezeichneter Würfel */
+.dice-die {
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .25s cubic-bezier(.3, 1.5, .5, 1);
+}
+.dice-die.is-gone .dice-throw,
+.dice-die.is-gone .dice-shadow { visibility: hidden; }
+.dice-throw {
+  position: absolute;
+  inset: 0;
+}
+.dice-shadow {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  bottom: -16%;
+  height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent);
+  opacity: .55;
+}
+.dice-puff {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: -22%;
+  height: 40%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .35), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Der Würfel: Elfenbein mit Glanzlicht oben links, sichtbarer Unterkante (Tiefe) und weichen Rundungen */
+.dice-body {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  place-items: center;
+  padding: 15%;
+  border-radius: 24%;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 42%),
+    linear-gradient(155deg, #fffdf8 0%, #f5efe3 55%, #e3d8c3 100%);
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, .9),
+    inset 0 -3px 6px rgba(140, 115, 75, .18),
+    inset -3px 0 6px rgba(140, 115, 75, .1),
+    0 calc(var(--size) * .055) 0 #cbbd9f,
+    0 calc(var(--size) * .055 + 1px) 0 #b3a383,
+    0 calc(var(--size) * .14) calc(var(--size) * .16) rgba(0, 0, 0, .38);
+}
+/* Eingelassene Augen */
+.dice-body i {
+  width: 82%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #3d3833, #0f0d0b 70%);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, .75), 0 1px 0 rgba(255, 255, 255, .9);
+}
+/* Die Eins bekommt ein großes rotes Auge */
+.dice-body-1 i {
+  width: 115%;
+  background: radial-gradient(circle at 40% 35%, #ff6b6b, #a90f1c 72%);
+}
+
+/* Festgehaltener Würfel: angehoben, goldener Rahmen, Schloss */
+.dice-lock {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffe08a, #e0a52a);
+  font-size: 15px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .35);
+  transform: scale(0);
+  transition: transform .25s cubic-bezier(.3, 1.6, .5, 1);
+}
+.dice-die.is-held { transform: translateY(-10px); }
+.dice-die.is-held .dice-lock { transform: scale(1); }
+.dice-die.is-held .dice-body {
+  outline: 3px solid #ffd76a;
+  outline-offset: 3px;
+}
+
+/* Pasch: alle Würfel leuchten golden und hüpfen */
+.dice-die.is-match .dice-body { animation: dice-match .5s cubic-bezier(.3, 1.6, .5, 1) 2 alternate; }
+.dice-die.is-match .dice-body::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 26%;
+  box-shadow: 0 0 0 3px #ffd76a, 0 0 24px #ffd76a;
+}
+@keyframes dice-match {
+  50% { translate: 0 -14px; }
+}
+
+.dice-banner {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: .06em;
+  color: #ffd76a;
+  text-shadow: 0 0 16px rgba(255, 215, 106, .85), 3px 4px 0 rgba(0, 0, 0, .5);
+  opacity: 0;
+  pointer-events: none;
+}
+.dice-banner.is-on { animation: dice-banner 1.9s cubic-bezier(.3, 1.6, .5, 1) forwards; }
+@keyframes dice-banner {
+  0% { opacity: 0; transform: scale(.4) rotate(-8deg); }
+  25% { opacity: 1; transform: scale(1.12) rotate(-4deg); }
+  80% { opacity: 1; transform: scale(1) rotate(-4deg); }
+  100% { opacity: 0; transform: scale(1) rotate(-4deg) translateY(-10px); }
+}
+
+/* Ergebnis: Summe und die einzelnen Augen als kleine Chips */
+.dice-result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 64px;
+}
+.dice-sum {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.dice-sum-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.dice-sum-value {
+  display: inline-block;
+  min-width: 2ch;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 58px;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.dice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 190px;
+}
+.dice-chips:empty { display: none; }
+.dice-chip {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff, #e9e0cf);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .12), 0 2px 6px rgba(0, 0, 0, .25);
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: #1b1712;
+  animation: dice-chip .4s cubic-bezier(.3, 1.6, .5, 1) backwards;
+  animation-delay: calc(var(--i) * 60ms + 120ms);
+}
+@keyframes dice-chip {
+  from { transform: translateY(10px) scale(.4); opacity: 0; }
+}
+
+/* Verlauf der letzten Würfe */
+.dice-history {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 24px;
+}
+.dice-history-label {
+  margin-right: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.dice-history-item {
+  min-width: 26px;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.dice-history-item.is-new {
+  border-color: var(--accent);
+  color: var(--accent);
+  animation: dice-chip .4s cubic-bezier(.3, 1.6, .5, 1);
+}
+.dice-history-item.is-pasch { border-color: #e0a52a; }
+
+.dice-roll {
+  font-size: 30px;
+  letter-spacing: .1em;
+}
+.dice-roll:not(:disabled) { animation: dice-ready 2.4s ease-in-out infinite; }
+@keyframes dice-ready {
+  50% { box-shadow: 0 8px 34px color-mix(in srgb, var(--accent) 65%, transparent); }
+}
+.dice-hint {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-btn,
+  .dice-die.is-match .dice-body,
+  .dice-banner.is-on,
+  .dice-chip,
+  .dice-history-item.is-new,
+  .dice-roll:not(:disabled),
+  .is-rolling .dice-spot { animation: none; }
+  .dice-banner.is-on { opacity: 1; transform: none; }
+  .dice-count-thumb { transition: none; }
+}

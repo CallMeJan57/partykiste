@@ -1,0 +1,657 @@
+/* Alle Regeln beginnen mit .game-pantomime, damit sie nur in diesem Spiel gelten. */
+
+/* Blau als Akzent – im hellen Design dunkler, damit Text und Buttons lesbar bleiben */
+.game-pantomime {
+  --accent: #2563eb;
+  --accent-2: #4f8dff;
+  --on-accent: #ffffff;
+  --urgent: #e5372b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .game-pantomime {
+    --accent: #5b9dff;
+    --accent-2: #9cc3ff;
+    --on-accent: #0b1630;
+    --urgent: #ff5a4e;
+  }
+}
+:root[data-theme="dark"] .game-pantomime {
+  --accent: #5b9dff;
+  --accent-2: #9cc3ff;
+  --on-accent: #0b1630;
+  --urgent: #ff5a4e;
+}
+.game-pantomime .pm-center { text-align: center; }
+
+/* Buchstaben fallen nacheinander herein (Index in --i) */
+.game-pantomime .pm-word { display: inline-block; }
+.game-pantomime .pm-letter {
+  display: inline-block;
+  animation: pm-letter .5s cubic-bezier(.2, .8, .3, 1.3) backwards;
+  animation-delay: calc(120ms + var(--i) * 40ms);
+}
+@keyframes pm-letter {
+  from { opacity: 0; transform: translateY(-.6em) rotate(-12deg) scale(.6); }
+}
+
+.game-pantomime .pm-lede {
+  max-width: 36ch;
+  margin-inline: auto;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.game-pantomime .pm-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+  text-align: center;
+}
+
+/* Pantomime-Figur: Kopf wiegt, Augen blinzeln, Hände tasten die unsichtbare Wand ab */
+.game-pantomime .pm-mime {
+  width: 150px;
+  height: auto;
+  margin: 0 auto -10px;
+  overflow: visible;
+  animation: pm-mime-in .7s cubic-bezier(.2, .8, .3, 1.3) backwards;
+}
+.game-pantomime .pm-mime-head {
+  transform-box: fill-box;
+  transform-origin: 50% 90%;
+  animation: pm-mime-tilt 4s ease-in-out infinite;
+}
+.game-pantomime .pm-mime-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pm-blink 4.5s infinite;
+}
+.game-pantomime .pm-mime-hand {
+  transform-box: fill-box;
+  animation: pm-wall-l 3.2s cubic-bezier(.7, 0, .3, 1) infinite;
+}
+.game-pantomime .pm-mime-hand-r { animation-name: pm-wall-r; }
+@keyframes pm-mime-in {
+  from { opacity: 0; transform: translateY(30px) scale(.7); }
+}
+@keyframes pm-mime-tilt {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+@keyframes pm-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(.1); }
+}
+@keyframes pm-wall-l {
+  0%, 20%, 70%, 100% { transform: translate(0, 0); }
+  30%, 60% { transform: translate(0, -16px); }
+}
+@keyframes pm-wall-r {
+  0%, 20%, 70%, 100% { transform: translate(0, 0); }
+  30%, 60% { transform: translate(0, 18px); }
+}
+
+.game-pantomime .pm-title {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 16vw, 80px);
+  line-height: .92;
+  letter-spacing: .02em;
+  color: var(--accent);
+  hyphens: manual;
+}
+
+/* ---------- Wer ist dran? ---------- */
+.game-pantomime .pm-turn { gap: 20px; }
+
+.game-pantomime .pm-turn-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  text-align: center;
+}
+
+.game-pantomime .pm-name {
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(52px, 16vw, 84px);
+  line-height: .95;
+  letter-spacing: .02em;
+  overflow-wrap: anywhere;
+}
+
+.game-pantomime .pm-scores {
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bühne mit rotem Samtvorhang – Tippen öffnet ihn */
+.game-pantomime .pm-cover {
+  appearance: none;
+  position: relative;
+  flex: 1;
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: radial-gradient(ellipse 80% 50% at 50% 105%, #2b3555, #0b0f1d 75%);
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, .06);
+  color: #ffd98a;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .12s ease;
+}
+.game-pantomime .pm-cover:active { transform: scale(.98); }
+
+.game-pantomime .pm-stage-spot {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 40% 60% at 50% 58%, rgba(255, 240, 200, .4), transparent 70%);
+  opacity: 0;
+  transition: opacity .4s ease .25s;
+}
+.game-pantomime .pm-cover.is-open .pm-stage-spot { opacity: 1; }
+
+.game-pantomime .pm-curtain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 51%;
+  background:
+    linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, .4)),
+    repeating-linear-gradient(90deg, #5e0a16 0, #9b1528 9px, #c42a3e 15px, #9b1528 21px, #5e0a16 30px);
+  transition: transform .65s cubic-bezier(.6, 0, .3, 1);
+  animation: pm-sway 5s ease-in-out infinite;
+}
+.game-pantomime .pm-curtain-l {
+  left: 0;
+  transform-origin: 0 0;
+  box-shadow: 6px 0 14px rgba(0, 0, 0, .35);
+}
+.game-pantomime .pm-curtain-r {
+  right: 0;
+  transform-origin: 100% 0;
+  box-shadow: -6px 0 14px rgba(0, 0, 0, .35);
+  animation-delay: -2.5s;
+}
+.game-pantomime .pm-cover.is-open .pm-curtain { transform: scaleX(.14); }
+.game-pantomime .pm-cover.is-closing .pm-curtain-l { animation: pm-sway 5s ease-in-out infinite, pm-close-l .65s cubic-bezier(.3, .7, .3, 1) backwards; }
+.game-pantomime .pm-cover.is-closing .pm-curtain-r { animation: pm-sway 5s ease-in-out -2.5s infinite, pm-close-r .65s cubic-bezier(.3, .7, .3, 1) backwards; }
+@keyframes pm-sway {
+  0%, 100% { rotate: -.5deg; }
+  50% { rotate: .5deg; }
+}
+@keyframes pm-close-l { from { translate: -100% 0; } }
+@keyframes pm-close-r { from { translate: 100% 0; } }
+
+/* Querbehang mit Bögen und Goldkante */
+.game-pantomime .pm-valance {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: 32px;
+  border-top: 3px solid #d9a441;
+  background:
+    radial-gradient(circle at 50% 0, #8c1323 0 13px, transparent 14px) 0 14px / 28px 18px repeat-x,
+    linear-gradient(#5a0a15, #8c1323) 0 0 / 100% 15px no-repeat;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .35));
+}
+
+.game-pantomime .pm-cover-sign {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 22px;
+  border-radius: 18px;
+  background: rgba(20, 6, 10, .55);
+  box-shadow: inset 0 0 0 1.5px rgba(217, 164, 65, .7);
+  transition: opacity .25s ease, transform .25s ease;
+  animation: pm-sign-glow 2.4s ease-in-out infinite;
+}
+.game-pantomime .pm-cover.is-open .pm-cover-sign {
+  opacity: 0;
+  transform: scale(.85);
+}
+@keyframes pm-sign-glow {
+  0%, 100% { box-shadow: inset 0 0 0 1.5px rgba(217, 164, 65, .7), 0 0 0 rgba(255, 210, 120, 0); }
+  50% { box-shadow: inset 0 0 0 1.5px rgba(217, 164, 65, 1), 0 0 26px rgba(255, 210, 120, .35); }
+}
+.game-pantomime .pm-cover-eye svg {
+  width: 46px;
+  height: 46px;
+}
+.game-pantomime .pm-cover-eye { animation: pm-blink 3.6s infinite; }
+.game-pantomime .pm-cover-label {
+  font-family: var(--font-display);
+  font-size: 30px;
+  letter-spacing: .05em;
+  text-shadow: 0 0 14px rgba(255, 200, 100, .45);
+}
+
+.game-pantomime .pm-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+/* ---------- Begriff ---------- */
+.game-pantomime .pm-term-screen { gap: 16px; }
+
+.game-pantomime .pm-card {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+  padding: 28px 22px;
+  text-align: center;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+}
+
+/* Scheinwerfer von oben, flackert beim Einschalten */
+.game-pantomime .pm-card-spot {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 45% 75% at 50% -8%, color-mix(in srgb, var(--accent-2) 38%, transparent), transparent 75%),
+    radial-gradient(ellipse 55% 14% at 50% 92%, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 80%);
+  pointer-events: none;
+  animation: pm-spot-on .8s steps(1, end) backwards, pm-spot-breathe 4s ease-in-out .8s infinite;
+}
+.game-pantomime .pm-card > :not(.pm-card-spot) { position: relative; }
+@keyframes pm-spot-on {
+  0% { opacity: 0; }
+  20% { opacity: .9; }
+  35% { opacity: .15; }
+  50% { opacity: 1; }
+  62% { opacity: .4; }
+  75% { opacity: 1; }
+}
+@keyframes pm-spot-breathe {
+  50% { opacity: .75; }
+}
+
+.game-pantomime .pm-category {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.game-pantomime .pm-term {
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 13vw, 68px);
+  line-height: .98;
+  letter-spacing: .02em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.game-pantomime .pm-help {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Verdeckter Text: verschwommen, bis man drauftippt */
+.game-pantomime .pm-secret {
+  appearance: none;
+  position: relative;
+  display: grid;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  overflow: hidden;
+}
+.game-pantomime .pm-secret > * { grid-area: 1 / 1; }
+
+.game-pantomime .pm-secret-text {
+  font-size: 16px;
+  line-height: 1.45;
+  filter: blur(7px);
+  opacity: .55;
+  user-select: none;
+  transition: filter .25s ease, opacity .25s ease;
+}
+.game-pantomime .pm-secret-cover {
+  align-self: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent);
+  transition: opacity .2s ease;
+}
+.game-pantomime .pm-secret[aria-pressed="true"] .pm-secret-text {
+  filter: none;
+  opacity: 1;
+  user-select: auto;
+}
+.game-pantomime .pm-secret[aria-pressed="true"] .pm-secret-cover { opacity: 0; }
+
+.game-pantomime .pm-running-term {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 9vw, 40px);
+  line-height: 1;
+  letter-spacing: .03em;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.game-pantomime .pm-actions {
+  display: grid;
+  gap: 10px;
+}
+
+/* 3 · 2 · 1 · Action! */
+.game-pantomime .pm-preroll {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 45%, rgba(14, 20, 42, .82), rgba(4, 6, 14, .96));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: pm-fade-in .2s ease backwards;
+}
+@keyframes pm-fade-in { from { opacity: 0; } }
+.game-pantomime .pm-preroll-step {
+  position: relative;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: min(48vw, 240px);
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 40px color-mix(in srgb, var(--accent) 80%, transparent);
+  animation: pm-step .65s cubic-bezier(.2, .8, .3, 1) both;
+}
+.game-pantomime .pm-preroll-step::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1em;
+  height: 1em;
+  margin: -.5em 0 0 -.5em;
+  border: 4px solid var(--accent-2);
+  border-radius: 50%;
+  animation: pm-step-ring .65s ease-out both;
+}
+.game-pantomime .pm-preroll-step.is-action {
+  gap: 4px;
+  font-size: min(22vw, 110px);
+  color: #ffd98a;
+  text-shadow: 0 0 30px rgba(255, 200, 100, .6);
+  animation-duration: .8s;
+}
+.game-pantomime .pm-preroll-clap {
+  font-size: 1.1em;
+  transform-origin: 20% 80%;
+  animation: pm-clap-board .35s ease-in-out 2;
+}
+@keyframes pm-step {
+  0% { opacity: 0; transform: scale(2.2); }
+  25% { opacity: 1; transform: scale(1); }
+  80% { opacity: 1; transform: scale(.92); }
+  100% { opacity: 0; transform: scale(.6); }
+}
+@keyframes pm-step-ring {
+  from { opacity: .9; transform: scale(.3); }
+  to { opacity: 0; transform: scale(1.6); }
+}
+@keyframes pm-clap-board {
+  50% { transform: rotate(-14deg) scale(1.1); }
+}
+
+/* ---------- Countdown ---------- */
+.game-pantomime .pm-running {
+  position: relative;
+  isolation: isolate;
+  gap: 18px;
+}
+
+/* Wandernder Scheinwerfer im Hintergrund, in den letzten Sekunden rot pulsierend */
+.game-pantomime .pm-running-light {
+  position: absolute;
+  inset: -40px -16px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 55% 40% at 50% 32%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 72%);
+  animation: pm-light-sweep 6s ease-in-out infinite alternate;
+}
+.game-pantomime .is-urgent .pm-running-light {
+  background: radial-gradient(ellipse 70% 50% at 50% 32%, color-mix(in srgb, var(--urgent) 30%, transparent), transparent 72%);
+  animation: pm-urgent-glow 1s ease-in-out infinite;
+}
+@keyframes pm-light-sweep {
+  from { transform: translateX(-16%); }
+  to { transform: translateX(16%); }
+}
+@keyframes pm-urgent-glow {
+  50% { opacity: .35; }
+}
+
+.game-pantomime .pm-clock {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: min(240px, 66vw);
+  aspect-ratio: 1;
+}
+.game-pantomime .pm-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent));
+}
+.game-pantomime .is-urgent .pm-ring { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--urgent) 60%, transparent)); }
+.game-pantomime .pm-ring-tip {
+  fill: var(--accent-2);
+  stroke: var(--surface);
+  stroke-width: 3;
+  transition: fill .3s ease;
+}
+.game-pantomime .is-urgent .pm-ring-tip { fill: var(--urgent); }
+.game-pantomime .pm-ring-track {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 8;
+}
+.game-pantomime .pm-ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke .3s ease;
+}
+.game-pantomime .pm-seconds {
+  font-family: var(--font-display);
+  font-size: clamp(72px, 22vw, 104px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-pantomime .is-urgent .pm-ring-progress { stroke: var(--urgent); }
+.game-pantomime .is-urgent .pm-seconds {
+  color: var(--urgent);
+  animation: pm-pulse 1s ease-in-out infinite;
+}
+@keyframes pm-pulse {
+  50% { transform: scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-pantomime .is-urgent .pm-seconds { animation: none; }
+}
+
+.game-pantomime .pm-peek {
+  display: grid;
+  gap: 8px;
+}
+
+/* ---------- Ergebnis ---------- */
+.game-pantomime .pm-result {
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+/* Großes Symbol: Applaus, klingelnder Wecker, wehende weiße Fahne */
+.game-pantomime .pm-result-icon {
+  font-size: 68px;
+  line-height: 1;
+  animation: pm-icon-in .6s cubic-bezier(.2, .8, .3, 1.4) backwards;
+}
+.game-pantomime .pm-is-guessed .pm-result-icon { animation: pm-icon-in .6s cubic-bezier(.2, .8, .3, 1.4) backwards, pm-clap .3s ease-in-out .6s 5; }
+.game-pantomime .pm-is-timeout .pm-result-icon { animation: pm-icon-in .6s cubic-bezier(.2, .8, .3, 1.4) backwards, pm-bell .1s linear .5s 10; }
+.game-pantomime .pm-is-given-up .pm-result-icon {
+  transform-origin: 15% 95%;
+  animation: pm-icon-in .6s cubic-bezier(.2, .8, .3, 1.4) backwards, pm-wave 1.4s ease-in-out .6s infinite;
+}
+.game-pantomime .pm-end .pm-result-icon { animation: pm-icon-in .6s cubic-bezier(.2, .8, .3, 1.4) backwards, pm-bob 2.4s ease-in-out .6s infinite; }
+@keyframes pm-icon-in {
+  from { opacity: 0; transform: scale(.2) rotate(-30deg); }
+}
+@keyframes pm-clap {
+  50% { transform: scale(1.18) rotate(-6deg); }
+}
+@keyframes pm-bell {
+  25% { transform: rotate(-14deg); }
+  75% { transform: rotate(14deg); }
+}
+@keyframes pm-wave {
+  0%, 100% { transform: rotate(-6deg) skewY(0); }
+  50% { transform: rotate(8deg) skewY(-6deg); }
+}
+@keyframes pm-bob {
+  50% { transform: translateY(-8px) rotate(4deg); }
+}
+
+/* Applaus-Hände steigen auf */
+.game-pantomime .pm-applause {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.game-pantomime .pm-applause span {
+  position: absolute;
+  bottom: -40px;
+  font-size: 34px;
+}
+
+.game-pantomime .pm-result-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 14vw, 72px);
+  line-height: .95;
+  letter-spacing: .02em;
+  text-wrap: balance;
+  color: var(--accent);
+}
+.game-pantomime .pm-is-timeout .pm-result-title,
+.game-pantomime .pm-is-given-up .pm-result-title { color: var(--urgent); }
+
+.game-pantomime .pm-answer {
+  animation: pm-rise .5s cubic-bezier(.2, .8, .2, 1) .45s backwards;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.game-pantomime .pm-answer-term {
+  font-weight: 800;
+  font-size: clamp(24px, 7vw, 32px);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.game-pantomime .pm-award {
+  animation: pm-rise .5s cubic-bezier(.2, .8, .2, 1) .65s backwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.game-pantomime .pm-award-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.game-pantomime .pm-award-btn {
+  position: relative;
+  animation: pm-pop .4s cubic-bezier(.3, .8, .3, 1.4) backwards;
+  animation-delay: calc(.8s + var(--i) * 70ms);
+  appearance: none;
+  padding: 12px 18px;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.game-pantomime .pm-award-btn:active,
+.game-pantomime .pm-award-btn.is-picked {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.game-pantomime .pm-award-btn.is-picked { animation: pm-picked .4s cubic-bezier(.3, .8, .3, 1.4); }
+.game-pantomime .pm-plus {
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--accent);
+  pointer-events: none;
+  animation: pm-plus .55s ease-out forwards;
+}
+@keyframes pm-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@keyframes pm-pop {
+  from { opacity: 0; transform: scale(.6); }
+}
+@keyframes pm-picked {
+  50% { transform: scale(1.15); }
+}
+@keyframes pm-plus {
+  from { opacity: 0; transform: translate(-50%, 6px) scale(.6); }
+  30% { opacity: 1; transform: translate(-50%, -12px) scale(1.15); }
+  to { opacity: 0; transform: translate(-50%, -38px) scale(1); }
+}
+

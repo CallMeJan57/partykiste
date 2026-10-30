@@ -1,0 +1,459 @@
+/* Alle Regeln beginnen mit .game-regelrad, damit sie nur in diesem Spiel gelten. */
+
+/* Fuchsia als Akzent – im hellen Design dunkler, damit Text und Buttons lesbar bleiben */
+.game-regelrad {
+  --accent: #a21caf;
+  --accent-2: #c026d3;
+  --on-accent: #ffffff;
+  --gold: #f5b72e;
+  --wheel-dark: #2b1236;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .game-regelrad {
+    --accent: #e879f9;
+    --accent-2: #f5d0fe;
+    --on-accent: #2b0530;
+  }
+}
+:root[data-theme="dark"] .game-regelrad {
+  --accent: #e879f9;
+  --accent-2: #f5d0fe;
+  --on-accent: #2b0530;
+}
+
+.game-regelrad .rr-small {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.game-regelrad .rr-center { text-align: center; }
+
+.game-regelrad .rr-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.game-regelrad .rr-title {
+  font-family: var(--font-display);
+  font-size: clamp(46px, 14vw, 66px);
+  line-height: .95;
+  letter-spacing: .03em;
+  background: linear-gradient(90deg, #ff4f7b, #ffb020, #22c55e, #3d8bff, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Hauptansicht ---------- */
+.game-regelrad .rr-main { gap: 18px; }
+
+.game-regelrad .rr-owner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.game-regelrad .rr-owner-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.game-regelrad .rr-owner-btn {
+  appearance: none;
+  padding: 9px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .12s ease;
+}
+.game-regelrad .rr-owner-btn:active { transform: scale(.96); }
+.game-regelrad .rr-owner-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ---------- Rad ---------- */
+.game-regelrad .rr-stage {
+  display: grid;
+  place-items: center;
+  padding-top: 14px;
+}
+.game-regelrad .rr-wheel-box {
+  position: relative;
+  width: min(350px, 90vw);
+  aspect-ratio: 1;
+}
+
+.game-regelrad .rr-wheel {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, .35));
+  -webkit-tap-highlight-color: transparent;
+}
+.game-regelrad .rr-rim {
+  fill: var(--wheel-dark);
+  stroke: var(--gold);
+  stroke-width: 7;
+}
+.game-regelrad .rr-divider {
+  stroke: rgba(255, 255, 255, .55);
+  stroke-width: 1.2;
+}
+.game-regelrad .rr-seg-emoji { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+.game-regelrad .rr-seg-label {
+  fill: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, .28);
+  stroke-width: 2.2px;
+  stroke-linejoin: round;
+}
+.game-regelrad .rr-hub {
+  fill: var(--gold);
+  stroke: #fff4cf;
+  stroke-width: 3;
+}
+.game-regelrad .rr-hub-inner { fill: var(--wheel-dark); }
+.game-regelrad .rr-hub-text { font-size: 20px; }
+
+/* Lämpchen am Rand: Lauflicht, beim Drehen schneller */
+.game-regelrad .rr-light {
+  fill: #6b4a10;
+  animation: rr-chase 1.8s linear infinite;
+  animation-delay: calc(var(--i) * -0.075s);
+}
+@keyframes rr-chase {
+  0%, 30% { fill: #fff6c8; filter: drop-shadow(0 0 3px #ffd76a); }
+  31%, 100% { fill: #6b4a10; filter: none; }
+}
+.game-regelrad .is-spinning .rr-light {
+  animation-duration: .5s;
+  animation-delay: calc(var(--i) * -0.02s);
+}
+
+/* Zeiger oben: klackert beim Drehen */
+.game-regelrad .rr-pointer {
+  position: absolute;
+  top: -16px;
+  left: calc(50% - 20px);
+  width: 40px;
+  height: 52px;
+  transform-origin: 50% 33%;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .4));
+  pointer-events: none;
+}
+.game-regelrad .rr-pointer path {
+  fill: #ffffff;
+  stroke: var(--wheel-dark);
+  stroke-width: 2.5;
+}
+.game-regelrad .rr-pointer circle { fill: var(--accent-2); }
+
+.game-regelrad .rr-spin-btn {
+  font-size: 32px;
+  letter-spacing: .1em;
+}
+.game-regelrad .rr-spin-btn:not(:disabled) { animation: rr-breathe 2.4s ease-in-out infinite; }
+@keyframes rr-breathe {
+  50% { transform: scale(1.025); }
+}
+
+/* ---------- Ergebnis ---------- */
+.game-regelrad .rr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  justify-items: center;
+  padding: 16px;
+  overflow-y: auto; /* hohe Karte (viele Namen) lässt sich auf kleinen Handys scrollen */
+  background: rgba(14, 6, 20, .66);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: rr-fade .25s ease-out;
+}
+.game-regelrad .rr-overlay.is-closing { animation: rr-fade-out .22s ease-in forwards; }
+@keyframes rr-fade { from { opacity: 0; } }
+@keyframes rr-fade-out { to { opacity: 0; } }
+
+/* Strahlenkranz hinter der Karte – eigene Ebene, damit die riesigen Strahlen nicht mitscrollen */
+.game-regelrad .rr-rays-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.game-regelrad .rr-rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 180vmax;
+  height: 180vmax;
+  margin: -90vmax 0 0 -90vmax;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 215, 106, .16) 0deg 9deg, transparent 9deg 18deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0, transparent 45%);
+  mask-image: radial-gradient(circle, #000 0, transparent 45%);
+  animation: rr-rotate 24s linear infinite;
+}
+@keyframes rr-rotate { to { transform: rotate(360deg); } }
+
+.game-regelrad .rr-card {
+  position: relative;
+  width: min(400px, 100%);
+  margin-block: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 22px 22px;
+  border: 3px solid var(--accent);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45), 0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent);
+  animation: rr-pop .55s cubic-bezier(.3, 1.5, .5, 1);
+}
+@keyframes rr-pop {
+  0% { transform: scale(.3) rotate(-14deg); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+.game-regelrad .rr-card-emoji {
+  font-size: 76px;
+  line-height: 1.1;
+  animation: rr-bounce 1.2s cubic-bezier(.3, 1.6, .5, 1) .25s both;
+}
+@keyframes rr-bounce {
+  0% { transform: scale(0) rotate(-30deg); }
+  45% { transform: scale(1.2) rotate(8deg); }
+  70% { transform: scale(.95) rotate(-3deg); }
+  100% { transform: none; }
+}
+.game-regelrad .rr-card-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 11vw, 48px);
+  line-height: 1;
+  letter-spacing: .03em;
+  color: var(--accent);
+}
+.game-regelrad .rr-card-text {
+  font-weight: 800;
+  font-size: clamp(19px, 5.4vw, 23px);
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+/* Wer ist aufs Feld gekommen? – in der Ergebniskarte */
+.game-regelrad .rr-card-owner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.game-regelrad .rr-card-owner .rr-owner-buttons:empty { display: none; }
+.game-regelrad .rr-card-owner .rr-owner-btn {
+  padding: 7px 14px;
+  font-size: 14px;
+}
+.game-regelrad .rr-owner-add {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.game-regelrad .rr-owner-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 15px;
+  color: var(--text);
+}
+.game-regelrad .rr-owner-add input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+.game-regelrad .rr-owner-add button {
+  appearance: none;
+  flex: none;
+  width: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--on-accent);
+  cursor: pointer;
+}
+.game-regelrad .rr-owner-error {
+  font-size: 12.5px;
+  color: var(--danger);
+}
+.game-regelrad .rr-owner-error:empty { display: none; }
+
+.game-regelrad .rr-card-until {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.game-regelrad .rr-card-penalty {
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- Aktive Regeln ---------- */
+.game-regelrad .rr-active {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.game-regelrad .rr-active:empty { display: none; }
+.game-regelrad .rr-active-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.game-regelrad .rr-rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+.game-regelrad .rr-rule-emoji {
+  flex: none;
+  font-size: 30px;
+}
+.game-regelrad .rr-rule-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14.5px;
+  line-height: 1.35;
+}
+.game-regelrad .rr-rule-body b { font-size: 15.5px; }
+.game-regelrad .rr-rule-body small {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.game-regelrad .rr-rule-done {
+  appearance: none;
+  flex: none;
+  padding: 9px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.game-regelrad .rr-rule-done:active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.game-regelrad .rr-custom-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.game-regelrad .rr-custom-list:empty { display: none; }
+.game-regelrad .rr-custom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: 14.5px;
+  line-height: 1.35;
+}
+.game-regelrad .rr-custom span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.game-regelrad .rr-custom button {
+  appearance: none;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 18px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.game-regelrad .rr-custom-add {
+  display: flex;
+  gap: 8px;
+}
+.game-regelrad .rr-custom-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font: 500 16px var(--font-body);
+  color: var(--text);
+}
+.game-regelrad .rr-custom-add input::placeholder { color: var(--text-muted); }
+.game-regelrad .rr-custom-add input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.game-regelrad .rr-custom-add button {
+  appearance: none;
+  flex: none;
+  width: 52px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--on-accent);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-regelrad .rr-light,
+  .game-regelrad .is-spinning .rr-light,
+  .game-regelrad .rr-spin-btn:not(:disabled),
+  .game-regelrad .rr-rays,
+  .game-regelrad .rr-card,
+  .game-regelrad .rr-card-emoji,
+  .game-regelrad .rr-overlay { animation: none; }
+  .game-regelrad .rr-light { fill: #fff6c8; }
+}

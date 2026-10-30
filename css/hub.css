@@ -1,0 +1,347 @@
+/* Spieleauswahl (Startseite) */
+
+.hub {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding-top: 8px;
+}
+
+.hub-head {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Zartes Konfetti, das hinter der Überschrift herunterrieselt */
+.hub-confetti {
+  position: absolute;
+  inset: -24px calc(var(--gutter) * -1) -10px;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 25%, #000 60%, transparent);
+  mask-image: linear-gradient(transparent, #000 25%, #000 60%, transparent);
+}
+.hub-confetti i {
+  position: absolute;
+  top: -12px;
+  width: 7px;
+  height: 11px;
+  border-radius: 2px;
+  opacity: .55;
+  animation: hub-confetti linear infinite;
+}
+.hub-confetti i:nth-child(3n) { width: 8px; height: 8px; border-radius: 50%; }
+@keyframes hub-confetti {
+  from { transform: translateY(0) rotate(0); }
+  to { transform: translateY(210px) rotate(calc(var(--spin) * 540deg)); }
+}
+
+/* Kleiner pulsierender Punkt vor der Zeile „13 Spiele …“ */
+.hub-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hub-live {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: hub-live 2s ease-out infinite;
+}
+@keyframes hub-live {
+  70%, 100% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+
+.hub-title {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-display);
+  font-size: clamp(46px, 13vw, 64px);
+  line-height: .92;
+  letter-spacing: .01em;
+}
+.hub-line { white-space: nowrap; }
+.hub-word { display: inline-block; }
+.hub-letter {
+  display: inline-block;
+  animation: hub-letter .6s cubic-bezier(.3, .8, .3, 1.4) backwards;
+  animation-delay: calc(80ms + var(--i) * 32ms);
+}
+@keyframes hub-letter {
+  from { opacity: 0; transform: translateY(.45em) rotate(-10deg) scale(.6); }
+}
+
+/* „heute?“: eine Farbwelle läuft durch die Buchstaben, das Fragezeichen wackelt ab und zu */
+.hub-today {
+  font-style: normal;
+  color: var(--accent);
+}
+.hub-today .hub-letter,
+.hub-q {
+  display: inline-block;
+  animation:
+    hub-letter .6s cubic-bezier(.3, .8, .3, 1.4) backwards,
+    hub-wave 4s ease-in-out infinite;
+  animation-delay: calc(80ms + var(--i) * 32ms), calc(1.2s + var(--i) * 140ms);
+}
+@keyframes hub-wave {
+  0%, 100% { color: var(--accent); transform: translateY(0); }
+  15% { color: var(--accent-2); transform: translateY(-5px); }
+  30% { color: #ff6fae; transform: translateY(0); }
+  45% { color: var(--accent); }
+}
+.hub-q {
+  transform-origin: 50% 90%;
+  animation:
+    hub-letter .6s cubic-bezier(.3, .8, .3, 1.4) backwards,
+    hub-wiggle 5s ease-in-out 2s infinite;
+}
+@keyframes hub-wiggle {
+  0%, 82%, 100% { transform: rotate(0); }
+  86% { transform: rotate(-16deg) scale(1.1); }
+  90% { transform: rotate(12deg) scale(1.1); }
+  94% { transform: rotate(-5deg); }
+}
+
+/* Partyhut hüpft neben dem Titel */
+.hub-party {
+  display: inline-block;
+  margin-left: .12em;
+  font-size: .62em;
+  vertical-align: .25em;
+  animation: hub-party-in .7s cubic-bezier(.3, .8, .3, 1.5) .9s backwards, hub-party 2.6s ease-in-out 1.6s infinite;
+}
+@keyframes hub-party-in {
+  from { opacity: 0; transform: scale(0) rotate(-90deg); }
+}
+@keyframes hub-party {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(-8px) rotate(10deg); }
+}
+
+/* Mitspieler direkt auf der Startseite (Bedienung aus js/core/ui.js) */
+.hub-players {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  transition: border-color .2s ease;
+}
+.hub-players:has(.players.is-open) { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+
+/* Abschnitt mit Überschrift und feiner Linie bis zum Rand */
+.hub-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hub-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.hub-section-title span {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+.hub-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Kacheln in zwei Spalten */
+.hub-grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.hub-grid > li { display: flex; }
+
+.game-tile {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 148px;
+  padding: 14px 14px 16px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  color: inherit;
+  text-decoration: none;
+  transition: transform .15s ease, border-color .15s ease;
+  animation: hub-tile-in .45s cubic-bezier(.2, .8, .2, 1) backwards;
+  animation-delay: calc(var(--i) * 35ms);
+}
+/* zarter Farbschein in der Ecke, passend zum Spiel */
+.game-tile::before {
+  content: '';
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--card-accent) 22%, transparent), transparent);
+  pointer-events: none;
+}
+.game-tile:hover { border-color: var(--card-accent); }
+.game-tile:active { transform: scale(.97); }
+
+.game-tile-icon {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  padding: 8px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card-accent) 15%, transparent);
+  color: var(--card-accent);
+}
+.game-tile-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.game-tile-text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: auto;
+  min-width: 0;
+}
+.game-tile-title {
+  font-family: var(--font-display);
+  font-size: 23px;
+  line-height: .98;
+  letter-spacing: .02em;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+.game-tile-meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Bleibt in einem Abschnitt eine Kachel allein übrig, wird sie breit und liegt quer */
+.hub-grid > li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.hub-grid > li:last-child:nth-child(odd) .game-tile {
+  flex-direction: row;
+  align-items: center;
+  min-height: 0;
+}
+.hub-grid > li:last-child:nth-child(odd) .game-tile-text { margin-top: 0; }
+
+@keyframes hub-tile-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+/* Aktive Regeln aus dem Regelrad – bleiben sichtbar, solange sie gelten */
+.hub-rules:empty { display: none; }
+.hub-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1.5px solid var(--card-accent);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--card-accent) 9%, var(--surface));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--card-accent) 14%, transparent), var(--shadow);
+  animation: hub-rules-glow 2.8s ease-in-out infinite;
+}
+@keyframes hub-rules-glow {
+  50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--card-accent) 22%, transparent), var(--shadow); }
+}
+.hub-rules-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.hub-rules-head .eyebrow { color: var(--card-accent); }
+.hub-rules-link {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--card-accent);
+}
+.hub-rules-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.hub-rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.hub-rule-emoji {
+  flex: none;
+  font-size: 28px;
+}
+.hub-rule-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  line-height: 1.35;
+}
+.hub-rule-body b { font-size: 15px; }
+.hub-rule-body small {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--card-accent);
+}
+.hub-rule-done {
+  appearance: none;
+  flex: none;
+  padding: 8px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.hub-rule-done:active {
+  border-color: var(--card-accent);
+  background: var(--card-accent);
+  color: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hub-rules,
+  .game-tile,
+  .hub-letter,
+  .hub-q,
+  .hub-party,
+  .hub-live { animation: none; }
+  .hub-confetti { display: none; }
+}
