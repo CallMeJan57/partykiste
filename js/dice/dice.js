@@ -87,6 +87,9 @@ function restingTransform(die) {
 
 let open = null; // laufendes Fenster – es gibt immer nur eins
 
+// Liegt bewusst außerhalb des Fensters: Die Würfe bleiben beim Schließen erhalten, bis die App neu geladen wird
+const history = [];
+
 /** Öffnet den Würfelbecher. Gibt eine Funktion zum Schließen zurück. */
 export function openDice() {
   if (open) return open.close;
@@ -94,7 +97,6 @@ export function openDice() {
   let count = clampCount(appStorage.get('dice-count', DEFAULT_DICE));
   let dice = Array.from({ length: count }, newDie);
   let rolling = false;
-  const history = [];
   const timers = new Set();
   const cleanups = [];
 
@@ -157,6 +159,7 @@ export function openDice() {
   renderDice();
   renderCount();
   showResult(false);
+  renderHistory(false);
 
   if (!reducedMotion()) {
     overlay.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240 });
@@ -282,9 +285,9 @@ export function openDice() {
       : '';
   }
 
-  function renderHistory() {
+  function renderHistory(fresh = true) {
     historyBox.innerHTML = history.length
-      ? `<span class="dice-history-label">Letzte Würfe</span>${history.map((entry, index) => `<span class="dice-history-item${index === 0 ? ' is-new' : ''}${entry.pasch ? ' is-pasch' : ''}">${entry.total}</span>`).join('')}`
+      ? `<span class="dice-history-label">Letzte Würfe</span>${history.map((entry, index) => `<span class="dice-history-item${fresh && index === 0 ? ' is-new' : ''}${entry.pasch ? ' is-pasch' : ''}">${entry.total}</span>`).join('')}`
       : '';
   }
 

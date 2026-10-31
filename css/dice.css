@@ -286,9 +286,14 @@ html.dice-open { overflow: hidden; }
 }
 .dice-die.is-held { transform: translateY(-10px); }
 .dice-die.is-held .dice-lock { transform: scale(1); }
-.dice-die.is-held .dice-body {
-  outline: 3px solid #ffd76a;
-  outline-offset: 3px;
+/* Der Rahmen umschließt auch die Unterkante, sonst säße der Würfel zu tief darin */
+.dice-die.is-held .dice-body::before {
+  content: '';
+  position: absolute;
+  inset: -6px -6px calc(-6px - var(--size) * .055);
+  border: 3px solid #ffd76a;
+  border-radius: 28%;
+  pointer-events: none;
 }
 
 /* Pasch: alle Würfel leuchten golden und hüpfen */
