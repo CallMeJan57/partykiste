@@ -228,42 +228,79 @@
   50% { opacity: .4; }
 }
 
-/* Wachssiegel aus zwei Hälften: beim Öffnen springen sie auseinander */
+/* Wachssiegel: bricht entlang einer Zickzack-Linie, Wachskrümel fliegen weg */
 .game-dunkle-raetsel .dr-seal {
   position: relative;
-  width: 112px;
-  height: 112px;
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .5));
+  display: block;
+  width: 156px;
+  height: 156px;
+  filter: drop-shadow(0 7px 9px rgba(0, 0, 0, .55));
+}
+.game-dunkle-raetsel .dr-seal-glow {
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(229, 72, 77, .5), transparent 68%);
   animation: dr-seal-glow 2.4s ease-in-out infinite;
 }
-.game-dunkle-raetsel .dr-seal i {
+.game-dunkle-raetsel .dr-seal-half {
   position: absolute;
   inset: 0;
-  border-radius: 46% 54% 50% 50% / 52% 48% 54% 46%;
-  background: radial-gradient(circle at 36% 30%, #f06a6e, #b3191f 62%, #7c0d12);
-  transition: transform .5s cubic-bezier(.5, 0, .3, 1), opacity .5s ease;
+  transition: transform .45s cubic-bezier(.3, .7, .3, 1) .1s, opacity .4s ease .16s;
 }
-.game-dunkle-raetsel .dr-seal i:first-child { clip-path: polygon(0 0, 58% 0, 42% 30%, 60% 52%, 40% 74%, 54% 100%, 0 100%); }
-.game-dunkle-raetsel .dr-seal i:nth-child(2) { clip-path: polygon(58% 0, 100% 0, 100% 100%, 54% 100%, 40% 74%, 60% 52%, 42% 30%); }
-.game-dunkle-raetsel .dr-seal b {
+.game-dunkle-raetsel .dr-seal-half svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.game-dunkle-raetsel .dr-seal-half.is-left { clip-path: polygon(0 0, 56% 0, 46% 18%, 57% 34%, 43% 50%, 55% 66%, 45% 83%, 52% 100%, 0 100%); }
+.game-dunkle-raetsel .dr-seal-half.is-right { clip-path: polygon(56% 0, 100% 0, 100% 100%, 52% 100%, 45% 83%, 55% 66%, 43% 50%, 57% 34%, 46% 18%); }
+.game-dunkle-raetsel .dr-wax-edge { fill: #5f0a0e; }
+.game-dunkle-raetsel .dr-wax-shine {
+  fill: none;
+  stroke: rgba(255, 220, 220, .4);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.game-dunkle-raetsel .dr-wax-ring {
+  fill: none;
+  stroke-width: 3;
+}
+.game-dunkle-raetsel .dr-wax-ring.is-thin { stroke-width: 1.6; }
+.game-dunkle-raetsel .dr-wax-light .dr-wax-ring { stroke: rgba(255, 200, 200, .35); }
+.game-dunkle-raetsel .dr-wax-deep .dr-wax-ring { stroke: #640b10; }
+.game-dunkle-raetsel .dr-wax-light .dr-wax-crest { fill: rgba(255, 200, 200, .35); }
+.game-dunkle-raetsel .dr-wax-deep .dr-wax-crest { fill: #640b10; }
+.game-dunkle-raetsel .dr-seal-crumb {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-size: 58px;
-  font-weight: 400;
-  color: #7c0d12;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, .25);
-  transition: opacity .2s ease;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 6px;
+  margin: -3px 0 0 -4px;
+  border-radius: 40% 60% 55% 45%;
+  background: #ab1b21;
+  opacity: 0;
 }
 @keyframes dr-seal-glow {
-  50% { filter: drop-shadow(0 0 18px rgba(229, 72, 77, .6)); }
+  0%, 100% { opacity: .35; }
+  50% { opacity: 1; }
 }
 
-.game-dunkle-raetsel .dr-file.is-open .dr-seal b { opacity: 0; }
-.game-dunkle-raetsel .dr-file.is-open .dr-seal i:first-child { transform: translate(-50px, 30px) rotate(-34deg); opacity: 0; }
-.game-dunkle-raetsel .dr-file.is-open .dr-seal i:nth-child(2) { transform: translate(50px, 40px) rotate(30deg); opacity: 0; }
+.game-dunkle-raetsel .dr-file.is-open .dr-seal { animation: dr-seal-snap .14s linear; }
+.game-dunkle-raetsel .dr-file.is-open .dr-seal-glow { animation: none; opacity: 0; }
+.game-dunkle-raetsel .dr-file.is-open .dr-seal-half.is-left { transform: translate(-50px, 26px) rotate(-30deg); opacity: 0; }
+.game-dunkle-raetsel .dr-file.is-open .dr-seal-half.is-right { transform: translate(50px, 36px) rotate(26deg); opacity: 0; }
+.game-dunkle-raetsel .dr-file.is-open .dr-seal-crumb { animation: dr-seal-crumb .55s cubic-bezier(.2, .7, .4, 1) calc(.08s + var(--i) * .015s); }
+@keyframes dr-seal-snap {
+  25% { transform: translate(-3px, 1px) rotate(-2deg); }
+  50% { transform: translate(3px, -1px) rotate(2deg); }
+  75% { transform: translate(-2px, 0) rotate(-1deg); }
+}
+@keyframes dr-seal-crumb {
+  0% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(260deg) scale(.5); }
+}
 .game-dunkle-raetsel .dr-file.is-open { animation: dr-file-open .55s cubic-bezier(.6, 0, .4, 1) .4s forwards; }
 @keyframes dr-file-open {
   to { transform: perspective(1000px) rotateY(-96deg); opacity: 0; }
@@ -347,14 +384,29 @@
 }
 .game-dunkle-raetsel .dr-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 .game-dunkle-raetsel .dr-row .btn {
   padding-inline: 6px;
   font-size: 14px;
 }
 .game-dunkle-raetsel .dr-row .btn:disabled { opacity: .45; }
+
+/* Geschichte nachlesen während der Fragerunde */
+.game-dunkle-raetsel .dr-note {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: rgba(5, 3, 8, .96);
+  overflow-y: auto;
+  animation: dr-torch-in .25s ease backwards;
+}
 
 /* ---------- Taschenlampe: Text nur im Lichtkegel unter dem Finger ---------- */
 .game-dunkle-raetsel .dr-torch {

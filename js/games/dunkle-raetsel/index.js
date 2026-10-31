@@ -3,7 +3,8 @@ import { shuffle } from '../../core/random.js';
 import { bindPlayerEditor, bindSegmented, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, toggleList } from '../../core/ui.js';
 import categories from './cases.js';
 
-const DEFAULT_CATEGORIES = ['krimi', 'kurios', 'grusel'];
+const DEFAULT_CATEGORIES = ['mord', 'krimi', 'makaber', 'grusel'];
+const SELECTION_KEY = 'case-categories'; // neu benannt, damit „Mordfälle“ auch bei alter Auswahl dabei ist
 const LIMITS = ['15', '25', 'ohne']; // Fragen, bis die Kerze erlischt
 
 // Ab so vielen Namen leitet reihum jemand anderes den Fall, und es gibt Punkte
@@ -12,7 +13,7 @@ const NAMED_MIN_PLAYERS = 2;
 const MAX_POINTS = 3;     // ohne Tipp; jeder Tipp kostet einen Punkt
 const HINT_COST = 2;      // ein Tipp verbrennt so viele Fragen
 const LOW_CANDLE = 3;     // ab hier schlägt das Herz
-const TYPE_MS = 26;       // Schreibmaschine: ms pro Zeichen
+const TYPE_MS = 18;       // Schreibmaschine: ms pro Zeichen
 const OPEN_MS = 950;      // Siegel bricht, Akte klappt auf
 const STORM_MS = 1200;    // Blitz und Donner vor der Auflösung
 
@@ -66,6 +67,42 @@ const HERO = `
     </svg>
   </div>`;
 
+// Wachssiegel: unregelmäßig zerlaufenes Wachs mit eingeprägtem Dolch.
+// Beide Bruchhälften zeichnen dasselbe Siegel, jede zeigt per clip-path nur ihre Seite.
+// Die Prägung liegt doppelt übereinander: dunkel und leicht versetzt hell, das wirkt eingedrückt.
+const SEAL_EMBLEM = `
+  <circle class="dr-wax-ring" cx="80" cy="80" r="50"/>
+  <circle class="dr-wax-ring is-thin" cx="80" cy="80" r="43"/>
+  <path class="dr-wax-crest" d="M80 41a5 5 0 0 1 3 9v13h17a3 3 0 0 1 0 6H85v2l-1.5 33L80 117l-3.5-13L75 71v-2H60a3 3 0 0 1 0-6h17V50a5 5 0 0 1 3-9Z"/>`;
+
+const SEAL_ART = `
+  <svg viewBox="0 0 160 160">
+    <defs>
+      <radialGradient id="dr-wax" cx=".36" cy=".3" r=".8">
+        <stop offset="0" stop-color="#e2494d"/>
+        <stop offset=".5" stop-color="#ab1b21"/>
+        <stop offset="1" stop-color="#6f0b10"/>
+      </radialGradient>
+    </defs>
+    <path class="dr-wax-edge" d="M82 7c11-3 19 3 29 7 10 5 22 6 28 16 5 9 2 19 7 29 5 11 12 20 8 31-3 10-14 14-19 24-5 9-4 21-13 27-10 7-21 2-32 5-11 2-20 11-31 8-11-2-16-13-25-19-9-7-22-9-27-20-4-10 3-20 2-31-1-10-9-20-5-30 3-11 16-13 24-21 7-8 9-20 19-25 10-6 24 2 35-1Z"/>
+    <path fill="url(#dr-wax)" d="M81 15c10-2 17 3 26 7 9 3 19 5 24 13 5 9 2 17 6 26 5 10 10 18 7 28-3 9-13 13-17 22-5 9-4 19-12 24-9 6-19 2-29 4-10 3-18 10-28 8-10-3-14-12-23-18-8-6-19-8-23-18-4-9 3-18 2-28-1-9-8-18-4-27 4-10 14-12 21-19 7-8 8-18 17-23 10-5 22 3 33 1Z"/>
+    <path class="dr-wax-shine" d="M34 56c8-16 24-27 42-29"/>
+    <g class="dr-wax-light" transform="translate(0 1.6)">${SEAL_EMBLEM}</g>
+    <g class="dr-wax-deep">${SEAL_EMBLEM}</g>
+  </svg>`;
+
+const SEAL_CRUMBS = [[-62, -30], [-38, 58], [-14, -66], [24, 70], [52, -40], [70, 24]]
+  .map(([x, y], index) => `<i class="dr-seal-crumb" style="--dx: ${x}px; --dy: ${y}px; --i: ${index}"></i>`)
+  .join('');
+
+const SEAL = `
+  <span class="dr-seal" aria-hidden="true">
+    <span class="dr-seal-glow"></span>
+    <span class="dr-seal-half is-left">${SEAL_ART}</span>
+    <span class="dr-seal-half is-right">${SEAL_ART}</span>
+    ${SEAL_CRUMBS}
+  </span>`;
+
 export default {
   id: 'dunkle-raetsel',
   title: 'Dunkle Rätsel',
@@ -112,7 +149,7 @@ function mount(ctx) {
   showSetup();
 
   function loadSelection() {
-    const stored = storage.get('categories');
+    const stored = storage.get(SELECTION_KEY);
     const valid = Array.isArray(stored) ? stored.filter((key) => key in categories) : [];
     return valid.length ? valid : DEFAULT_CATEGORIES;
   }
@@ -179,7 +216,7 @@ function mount(ctx) {
 
     bindToggleList(root, 'categories', (values) => {
       selected = values;
-      storage.set('categories', values);
+      storage.set(SELECTION_KEY, values);
     });
     bindSegmented(root, 'limit', (value) => {
       limit = value;
@@ -238,7 +275,7 @@ function mount(ctx) {
           <span class="dr-file-tab">Akte ${String(caseNumber).padStart(3, '0')}</span>
           <span class="dr-file-stamp">Streng geheim</span>
           <span class="dr-file-cat">${esc(categories[current.key].label)}</span>
-          <span class="dr-seal" aria-hidden="true"><i></i><i></i><b>?</b></span>
+          ${SEAL}
           <span class="dr-file-tap">Siegel brechen</span>
         </button>
         <div class="dr-links">
@@ -343,7 +380,7 @@ function mount(ctx) {
         <p class="dr-torch-text">${esc(current.solution)}</p>
       </div>
       <button class="btn btn-ghost" type="button" data-action="close-torch">Lampe aus</button>`;
-    $('.dr-story', root).append(overlay);
+    root.append(overlay);
 
     const paper = $('.dr-torch-paper', overlay);
     const moveLight = (event) => {
@@ -408,9 +445,11 @@ function mount(ctx) {
         <div class="dr-actions">
           <button class="btn btn-primary" type="button" data-action="solved">Gelöst!</button>
           <div class="dr-row">
-            <button class="btn btn-ghost" type="button" data-action="hint">💡 Tipp${limit === 'ohne' ? '' : ` (−${HINT_COST} Fragen)`}</button>
+            <button class="btn btn-ghost" type="button" data-action="hint">💡 Tipp${limit === 'ohne' ? '' : ` −${HINT_COST}`}</button>
             <button class="btn btn-ghost" type="button" data-action="story">📜 Fall</button>
+            <button class="btn btn-ghost" type="button" data-action="peek">🔦 Lösung</button>
           </div>
+          <p class="dr-small dr-center">🔦 Die Lösung ist nur für die Person, die den Fall leitet.</p>
           <button class="btn-link" type="button" data-action="give-up">Aufgeben</button>
         </div>
       </section>`;
@@ -422,6 +461,7 @@ function mount(ctx) {
     $('[data-action="give-up"]', root).addEventListener('click', () => storm('given-up'));
     $('[data-action="hint"]', root).addEventListener('click', giveHint);
     $('[data-action="story"]', root).addEventListener('click', showStoryNote);
+    $('[data-action="peek"]', root).addEventListener('click', showFlashlight);
     renderHints();
     updateHintButton();
     if (!fx.reducedMotion()) {
@@ -517,14 +557,27 @@ function mount(ctx) {
   function updateHintButton() {
     const button = $('[data-action="hint"]', root);
     if (hintsUsed >= current.hints.length) {
-      button.textContent = 'Keine Tipps mehr';
+      button.textContent = 'Keine Tipps';
       button.disabled = true;
     }
   }
 
   // Geschichte zum Nachlesen während der Fragerunde
   function showStoryNote() {
-    fx.toast(current.story, 6000);
+    sound.click();
+    const overlay = document.createElement('div');
+    overlay.className = 'dr-note';
+    overlay.innerHTML = `
+      <div class="dr-paper">
+        <h2 class="dr-paper-title">${esc(current.title)}</h2>
+        <p class="dr-paper-text">${esc(current.story)}</p>
+      </div>
+      <button class="btn btn-ghost" type="button" data-action="close-note">Schließen</button>`;
+    root.append(overlay);
+    $('[data-action="close-note"]', overlay).addEventListener('click', () => {
+      sound.click();
+      overlay.remove();
+    });
   }
 
   // ---------- Auflösung: Blitz, Donner, Stempel ----------
