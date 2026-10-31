@@ -468,12 +468,14 @@
 .game-color-match .cm-result.is-done .cm-diff {
   animation-name: cm-rise, cm-diff-keep;
 }
-.game-color-match .cm-next {
-  margin-top: auto;
+.game-color-match .cm-next { margin-top: auto; }
+.game-color-match .cm-next,
+.game-color-match .cm-quit {
   opacity: 0;
   pointer-events: none;
 }
-.game-color-match .is-done .cm-next {
+.game-color-match .is-done .cm-next,
+.game-color-match .is-done .cm-quit {
   opacity: 1;
   pointer-events: auto;
   transition: opacity .3s ease .35s;

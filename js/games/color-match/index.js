@@ -8,7 +8,7 @@ const MEMORY_TIMES = [
   { value: '4', label: 'Mittel · 4 s' },
   { value: '2', label: 'Schwer · 2 s' },
 ];
-const ROUND_COUNTS = ['3', '5', '10'];
+const ROUND_COUNTS = ['3', '5', '10', 'endlos'];
 const MODES = [
   { value: 'hsb', label: 'Farbton-Regler' },
   { value: 'rgb', label: 'RGB-Regler' },
@@ -99,16 +99,21 @@ function mount(ctx) {
 
   showSetup();
 
+  function endless() {
+    return rounds === 'endlos';
+  }
+
   function totalTurns() {
-    return Number(rounds) * (named ? players.length : 1);
+    return endless() ? Infinity : Number(rounds) * (named ? players.length : 1);
   }
 
   function currentName() {
     return named ? players[turn % players.length] : null;
   }
 
-  function currentRound() {
-    return Math.floor(turn / (named ? players.length : 1)) + 1;
+  function roundLabel() {
+    const round = Math.floor(turn / (named ? players.length : 1)) + 1;
+    return endless() ? `Runde ${round}` : `Runde ${round} von ${rounds}`;
   }
 
   // ---------- Einstellungen ----------
@@ -137,9 +142,9 @@ function mount(ctx) {
             })}
             ${setupRow({
               label: 'Runden',
-              control: segmented({ name: 'rounds', label: 'Runden', options: ROUND_COUNTS.map((value) => ({ value, label: value })), value: rounds }),
+              control: segmented({ name: 'rounds', label: 'Runden', options: ROUND_COUNTS.map((value) => ({ value, label: value === 'endlos' ? 'Endlos' : value })), value: rounds }),
             })}`,
-          note: 'Farbton-Regler: Farbton, Sättigung, Helligkeit. RGB-Regler: Rot, Grün, Blau.',
+          note: 'Farbton-Regler: Farbton, Sättigung, Helligkeit. RGB-Regler: Rot, Grün, Blau. Endlos: so lange ihr wollt, beendet wird über „Spiel beenden“.',
         },
         {
           icon: '👥',
@@ -187,7 +192,7 @@ function mount(ctx) {
     const name = currentName();
     root.innerHTML = `
       <section class="screen cm-turn">
-        <p class="eyebrow">Runde ${currentRound()} von ${rounds}</p>
+        <p class="eyebrow">${roundLabel()}</p>
         <h1 class="cm-who">${name ? `${esc(name)} ist dran` : 'Bereit?'}</h1>
         <button class="cm-reveal-btn" type="button" data-action="show">
           <span class="cm-orbit" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -299,7 +304,7 @@ function mount(ctx) {
     root.innerHTML = `
       <section class="screen cm-mix">
         <div class="cm-mix-head">
-          <p class="eyebrow">Runde ${currentRound()} von ${rounds}${name ? ` · ${esc(name)}` : ''}</p>
+          <p class="eyebrow">${roundLabel()}${name ? ` · ${esc(name)}` : ''}</p>
           <h1 class="cm-mix-title">Misch die Farbe</h1>
         </div>
         <div class="cm-stage" aria-hidden="true">
@@ -464,7 +469,7 @@ function mount(ctx) {
 
     root.innerHTML = `
       <section class="screen cm-result" style="--target: ${css(target)}; --guess: ${css(guess)}">
-        <p class="eyebrow">Runde ${currentRound()} von ${rounds}${results.at(-1).name ? ` · ${esc(results.at(-1).name)}` : ''}</p>
+        <p class="eyebrow">${roundLabel()}${results.at(-1).name ? ` · ${esc(results.at(-1).name)}` : ''}${endless() ? ` · Ø ${average(results)} %` : ''}</p>
         <div class="cm-compare" role="img" aria-label="Vorgabe und deine Farbe im Vergleich">
           <svg class="cm-gauge" viewBox="0 0 120 120" aria-hidden="true">
             <circle class="cm-gauge-back" cx="60" cy="60" r="56"/>
@@ -483,9 +488,11 @@ function mount(ctx) {
             </span>`).join('')}
         </div>
         <button class="btn btn-primary cm-next" type="button" data-action="next" disabled>${last ? 'Ergebnis ansehen' : nextName ? `Weiter: ${esc(nextName)}` : 'Nächste Farbe'}</button>
+        ${endless() ? '<button class="btn-link cm-quit" type="button" data-action="quit" disabled>Spiel beenden</button>' : ''}
       </section>`;
 
     $('[data-action="next"]', root).addEventListener('click', advance);
+    $('[data-action="quit"]', root)?.addEventListener('click', showEnd);
 
     if (fx.reducedMotion()) {
       finishResult(percent, verdict);
@@ -529,7 +536,7 @@ function mount(ctx) {
     gauge.style.stroke = gaugeColor(percent);
     $('.cm-verdict', root).innerHTML = splitLetters(verdict, { prefix: 'cm' });
     screen.classList.add('is-done');
-    $('[data-action="next"]', root).disabled = false;
+    for (const button of screen.querySelectorAll('button')) button.disabled = false;
 
     if (percent >= 90) {
       sound.great();
@@ -559,11 +566,13 @@ function mount(ctx) {
   function showEnd() {
     const overall = average(results);
     const bestKey = `best-${memory}`;
-    const record = !named && overall > storage.get(bestKey, 0);
+    // Im Endlos-Modus zählt kein Rekord: Eine einzige Glücksrunde wäre sonst kaum zu schlagen
+    const record = !named && !endless() && overall > storage.get(bestKey, 0);
     if (record) storage.set(bestKey, overall);
 
     const ranked = named
       ? players
+        .filter((name) => results.some((entry) => entry.name === name)) // bei Abbruch mitten in der Runde
         .map((name) => {
           const own = results.filter((entry) => entry.name === name);
           return { name, score: average(own), best: Math.max(...own.map((entry) => entry.percent)) };
@@ -579,10 +588,10 @@ function mount(ctx) {
     root.innerHTML = `
       <section class="screen cm-end" data-leave-free>
         <div class="cm-end-ring" aria-hidden="true"><span>${overall}<small>%</small></span></div>
-        <p class="eyebrow">${named ? 'Ø aller Runden' : 'Dein Durchschnitt'}</p>
+        <p class="eyebrow">${named ? 'Ø aller Runden' : 'Dein Durchschnitt'}${endless() ? ` · ${results.length} ${results.length === 1 ? 'Farbe' : 'Farben'}` : ''}</p>
         <h1 class="cm-end-title">${title}</h1>
         ${record ? '<p class="cm-record">Neuer Rekord</p>' : ''}
-        ${!named && !record && storage.get(bestKey, 0) ? `<p class="cm-hint">Dein Rekord bei dieser Merkzeit: ${storage.get(bestKey, 0)} %</p>` : ''}
+        ${!named && !endless() && !record && storage.get(bestKey, 0) ? `<p class="cm-hint">Dein Rekord bei dieser Merkzeit: ${storage.get(bestKey, 0)} %</p>` : ''}
         ${named ? rankingList(ranked.map((entry) => ({ name: entry.name, value: `${entry.score} %`, note: `beste Runde ${entry.best} %` }))) : ''}
         <div class="cm-gallery-box">
           <p class="eyebrow">${gallery.length < results.length ? 'Die besten Treffer' : named ? 'Alle Treffer' : 'Deine Treffer'}</p>
