@@ -105,7 +105,7 @@ const SEAL = `
 
 export default {
   id: 'dunkle-raetsel',
-  title: 'Dunkle Rätsel',
+  title: 'Black Stories',
   tagline: 'Eine rätselhafte Geschichte, nur Ja/Nein-Fragen – und die Kerze brennt herunter.',
   tags: ['ab 2 Spielern', 'Namen optional'],
   accent: '#c0392b',
@@ -177,7 +177,7 @@ function mount(ctx) {
       hero: `
         <div class="dr-intro">
           ${HERO}
-          <h1 class="dr-title">Dunkle Rätsel</h1>
+          <h1 class="dr-title">Black Stories</h1>
           <p class="dr-lede">Eine Geschichte, die keinen Sinn ergibt. Nur Ja/Nein-Fragen führen zur Wahrheit.</p>
         </div>`,
       cards: [

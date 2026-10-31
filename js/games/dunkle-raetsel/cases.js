@@ -1,4 +1,4 @@
-// Fälle für „Dunkle Rätsel“ – die Runde klärt per Ja/Nein-Fragen, was wirklich passiert ist.
+// Fälle für „Black Stories“ – die Runde klärt per Ja/Nein-Fragen, was wirklich passiert ist.
 // Eintrag: { title, story, solution, hints: [Tipps, vom vagen zum deutlichen] }
 // story wird vorgelesen, solution sieht nur die Person, die den Fall leitet.
 // Gute Fälle sind mehrteilig: Die Runde muss nicht nur das Was, sondern auch Wie und Warum herausfinden.
