@@ -104,13 +104,13 @@ const SEAL = `
   </span>`;
 
 export default {
-  id: 'dunkle-raetsel',
+  id: 'black-stories',
   title: 'Black Stories',
   tagline: 'Eine rätselhafte Geschichte, nur Ja/Nein-Fragen – und die Kerze brennt herunter.',
   tags: ['ab 2 Spielern', 'Namen optional'],
   accent: '#c0392b',
   icon: ICON,
-  styles: new URL('./dunkle-raetsel.css', import.meta.url).href,
+  styles: new URL('./black-stories.css', import.meta.url).href,
   mount,
 };
 
