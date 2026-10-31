@@ -76,7 +76,7 @@ function mount(ctx) {
   let teamCount = TEAM_COUNTS.includes(storage.get('teams')) ? storage.get('teams') : '2';
   let skipRule = SKIP_RULES.some((rule) => rule.value === storage.get('skip')) ? storage.get('skip') : 'free';
   let players = ctx.players.get();
-  let order = shuffle(players); // Reihenfolge, aus der die Teams gebildet werden
+  let assignment = storage.get('assignment', {}); // Name → Nummer des Teams, bleibt gespeichert
 
   let sides = [];      // { name, emoji, color, members, score }
   let turn = 0;        // laufender Zug über alle Teams
@@ -107,17 +107,38 @@ function mount(ctx) {
     return team.members.length ? team.members[(roundNumber() - 1) % team.members.length] : null;
   }
 
-  // Namen reihum auf die Teams verteilen. Reichen sie nicht, spielen die Teams ohne Namen.
+  function teamSize(index) {
+    return players.filter((name) => assignment[name] === index).length;
+  }
+
+  // Neue Namen kommen ins kleinste Team, und jedes Team behält genug Leute
+  function syncAssignment(count) {
+    const next = {};
+    for (const name of players) {
+      if (assignment[name] < count) next[name] = assignment[name];
+    }
+    assignment = next;
+    const sizes = () => Array.from({ length: count }, (_, index) => teamSize(index));
+    for (const name of shuffle(players).filter((entry) => !(entry in assignment))) {
+      assignment[name] = sizes().indexOf(Math.min(...sizes()));
+    }
+    while (Math.min(...sizes()) < MIN_TEAM_SIZE) {
+      const largest = sizes().indexOf(Math.max(...sizes()));
+      const moved = players.findLast((name) => assignment[name] === largest);
+      assignment[moved] = sizes().indexOf(Math.min(...sizes()));
+    }
+    storage.set('assignment', assignment);
+  }
+
+  // Reichen die Namen nicht für alle Teams, spielen die Teams ohne Namen
   function buildSides() {
     const count = Number(teamCount);
-    const names = order.filter((name) => players.includes(name));
-    names.push(...players.filter((name) => !names.includes(name)));
-    order = names;
-    const enough = names.length >= count * MIN_TEAM_SIZE;
+    const enough = players.length >= count * MIN_TEAM_SIZE;
+    if (enough) syncAssignment(count);
     return TEAMS.slice(0, count).map((team, index) => ({
       ...team,
       score: 0,
-      members: enough ? names.filter((_, position) => position % count === index) : [],
+      members: enough ? players.filter((name) => assignment[name] === index) : [],
     }));
   }
 
@@ -178,27 +199,61 @@ function mount(ctx) {
     });
 
     const teamsBox = $('.tb-teams', root);
+    let picked = null; // angetippter Name, der das Team wechseln soll
+
     const renderTeams = () => {
       const preview = buildSides();
       if (!preview[0].members.length) {
+        picked = null;
         teamsBox.innerHTML = `<p class="tb-small">Ab ${Number(teamCount) * MIN_TEAM_SIZE} Namen teilt das Spiel die Teams ein und sagt, wer erklärt. Sonst einigt ihr euch selbst.</p>`;
         return;
       }
+      if (!players.includes(picked)) picked = null;
       teamsBox.innerHTML = `
         <ul class="tb-team-list">
-          ${preview.map((team) => `
-            <li style="--team: ${team.color}">
+          ${preview.map((team, index) => `
+            <li class="${picked && assignment[picked] !== index ? 'is-target' : ''}" style="--team: ${team.color}" data-team="${index}">
               <b>${team.emoji} ${team.name}</b>
-              <span>${team.members.map(esc).join(', ')}</span>
+              <div class="tb-members">
+                ${team.members.map((name) => `<button class="tb-member" type="button" data-name="${esc(name)}" aria-pressed="${name === picked}">${esc(name)}</button>`).join('')}
+              </div>
             </li>`).join('')}
         </ul>
+        <p class="tb-small">${picked ? `Wohin soll ${esc(picked)}? Team oder Namen zum Tauschen antippen.` : 'Name antippen, um das Team zu wechseln.'}</p>
         <button class="btn-link" type="button" data-action="mix">Teams neu mischen</button>`;
-      $('[data-action="mix"]', teamsBox).addEventListener('click', () => {
-        order = shuffle(order);
-        sound.deal();
-        renderTeams();
-      });
     };
+
+    const changeTeams = () => {
+      picked = null;
+      storage.set('assignment', assignment);
+      sound.deal();
+      vibrate(10);
+      renderTeams();
+    };
+
+    teamsBox.addEventListener('click', (event) => {
+      if (event.target.closest('[data-action="mix"]')) {
+        assignment = {};
+        changeTeams();
+        return;
+      }
+      const name = event.target.closest('[data-name]')?.dataset.name;
+      const team = event.target.closest('[data-team]');
+      if (name && (!picked || assignment[name] === assignment[picked])) {
+        picked = name === picked ? null : name;
+        renderTeams();
+      } else if (name) {
+        [assignment[name], assignment[picked]] = [assignment[picked], assignment[name]];
+        changeTeams();
+      } else if (team && picked && Number(team.dataset.team) !== assignment[picked]) {
+        if (teamSize(assignment[picked]) <= MIN_TEAM_SIZE) {
+          fx.toast(`Jedes Team braucht mindestens ${MIN_TEAM_SIZE} Personen`);
+          return;
+        }
+        assignment[picked] = Number(team.dataset.team);
+        changeTeams();
+      }
+    });
 
     bindToggleList(root, 'levels', (values) => {
       selected = values;

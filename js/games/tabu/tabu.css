@@ -168,11 +168,39 @@
   border-radius: var(--radius-sm);
   background: var(--surface-2);
   font-size: 14px;
-  animation: tb-rise .35s ease backwards;
 }
-.game-tabu .tb-team-list span {
-  color: var(--text-muted);
+.game-tabu .tb-team-list li.is-target {
+  outline: 2px dashed var(--team);
+  outline-offset: 1px;
+  cursor: pointer;
+}
+.game-tabu .tb-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+}
+.game-tabu .tb-member {
+  appearance: none;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 5px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
   overflow-wrap: anywhere;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .15s ease, background .15s ease;
+}
+.game-tabu .tb-member[aria-pressed="true"] {
+  border-color: var(--team);
+  background: var(--team);
+  color: #ffffff;
+  transform: scale(1.06);
 }
 @keyframes tb-rise {
   from { opacity: 0; transform: translateY(12px); }
