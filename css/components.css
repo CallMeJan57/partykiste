@@ -212,6 +212,8 @@
   touch-action: manipulation;
   transition: border-color .15s ease, background-color .15s ease, transform .12s ease;
 }
+/* Bleibt eine Kachel allein übrig, geht sie über die ganze Breite */
+.toggle-row:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .toggle-row:active { transform: scale(.97); }
 .toggle-row[aria-pressed="true"] {
   border-color: var(--accent);

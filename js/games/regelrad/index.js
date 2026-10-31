@@ -27,6 +27,9 @@ const RIM_LIGHTS = 24;
 
 // Drehen: mindestens so viele volle Umdrehungen, Dauer in ms
 const MIN_TURNS = 5;
+const ROLL_IN_MS = 1100;    // Rad rollt beim Öffnen von links herein
+const POINTER_AT_MS = 800;  // danach fällt der Zeiger ein
+const INTRO_MS = 1450;      // ab hier lässt sich das Rad drehen
 const SPIN_MS = 5600;
 
 const ICON = `
@@ -67,6 +70,7 @@ function mount(ctx) {
   let stopTicks = null;
 
   showWheel();
+  playIntro();
 
   // ---------- Regeln ----------
 
@@ -172,6 +176,62 @@ function mount(ctx) {
     $('.rr-wheel', root).addEventListener('click', () => spin(list));
     $('[data-action="settings"]', root).addEventListener('click', showSettings);
     renderActive();
+  }
+
+  // Auftritt beim Öffnen: Das Rad rollt herein, der Zeiger fällt ein, die Lämpchen laufen an
+  function playIntro() {
+    if (fx.reducedMotion()) return;
+    spinning = true;
+    const box = $('.rr-wheel-box', root);
+
+    $('.rr-wheel', root).animate(
+      [
+        { transform: 'translateX(-120vw) rotate(-1000deg)', easing: 'cubic-bezier(.25, .55, .4, 1)' },
+        { transform: 'translateX(10px) rotate(7deg)', offset: 0.76 },
+        { transform: 'translateX(-4px) rotate(-3deg)', offset: 0.9 },
+        { transform: 'none' },
+      ],
+      { duration: ROLL_IN_MS },
+    );
+    $('.rr-spinner', root).animate(
+      [{ transform: `rotate(${rotation - 330}deg)` }, { transform: `rotate(${rotation}deg)` }],
+      { duration: INTRO_MS, easing: 'cubic-bezier(.2, .7, .3, 1)' },
+    );
+    $('.rr-pointer', root).animate(
+      [
+        { transform: 'translateY(-80px) rotate(-40deg)', opacity: 0 },
+        { transform: 'translateY(4px) rotate(16deg)', opacity: 1, offset: 0.45 },
+        { transform: 'rotate(-9deg)', offset: 0.72 },
+        { transform: 'none' },
+      ],
+      { duration: 520, delay: POINTER_AT_MS, easing: 'ease-out', fill: 'backwards' },
+    );
+
+    const parts = [...root.querySelectorAll('.rr-owner, .rr-spin-btn, .rr-main > .rr-small, .rr-active, .rr-main > .btn-link')];
+    parts.forEach((part, index) => part.animate(
+      [{ opacity: 0, transform: 'translateY(22px)' }, { opacity: 1, transform: 'none' }],
+      { duration: 420, delay: POINTER_AT_MS + 120 + index * 70, easing: 'cubic-bezier(.2, .8, .3, 1.2)', fill: 'backwards' },
+    ));
+    $('.rr-head', root).animate(
+      [{ opacity: 0, transform: 'translateY(-26px) scale(.9)' }, { opacity: 1, transform: 'none' }],
+      { duration: 460, easing: 'cubic-bezier(.2, .8, .3, 1.3)' },
+    );
+
+    // Abrollen hörbar: Klicks werden langsamer, dann Aufsetzen und Zeiger-Klack
+    let delay = 0;
+    for (let gap = 0.05; delay < (ROLL_IN_MS / 1000) * 0.72; gap *= 1.2) {
+      audio.tone({ freq: 720, duration: 0.02, type: 'square', volume: 0.05, delay });
+      delay += gap;
+    }
+    audio.noise({ duration: 0.12, volume: 0.28, cutoff: 700, delay: (ROLL_IN_MS / 1000) * 0.72 });
+    audio.tone({ freq: 1100, duration: 0.04, type: 'square', volume: 0.09, delay: (POINTER_AT_MS + 230) / 1000 });
+    ctx.timeout(() => vibrate(20), ROLL_IN_MS * 0.72);
+
+    ctx.timeout(() => box.classList.add('is-spinning'), POINTER_AT_MS);
+    ctx.timeout(() => {
+      box.classList.remove('is-spinning');
+      spinning = false;
+    }, INTRO_MS);
   }
 
   // ---------- Drehen ----------
