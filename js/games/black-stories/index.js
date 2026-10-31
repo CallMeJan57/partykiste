@@ -16,6 +16,7 @@ const LOW_CANDLE = 3;     // ab hier schlägt das Herz
 const TYPE_MS = 18;       // Schreibmaschine: ms pro Zeichen
 const OPEN_MS = 950;      // Siegel bricht, Akte klappt auf
 const STORM_MS = 1200;    // Blitz und Donner vor der Auflösung
+const TORCH_LIFT = 52;    // so weit (px) leuchtet die Lampe über den Finger, damit er den Text nicht verdeckt
 
 const ANSWERS = {
   ja: { label: 'Ja', stamp: 'JA' },
@@ -386,7 +387,7 @@ function mount(ctx) {
     const moveLight = (event) => {
       const box = paper.getBoundingClientRect();
       paper.style.setProperty('--x', `${event.clientX - box.left}px`);
-      paper.style.setProperty('--y', `${event.clientY - box.top}px`);
+      paper.style.setProperty('--y', `${event.clientY - box.top - TORCH_LIFT}px`);
     };
     overlay.addEventListener('pointerdown', moveLight);
     overlay.addEventListener('pointermove', moveLight);
