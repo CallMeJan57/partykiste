@@ -20,9 +20,10 @@ Lokal starten: `python3 tools/serve.py` (wie `python3 -m http.server 8000`, aber
 - `tools/schaetz-bilder.py` – erzeugt `js/games/schaetzen/images.js` aus den `image`-Feldern in `questions.js` (nutzt die Wikipedia-Abfragen aus `kmk-bilder.py`); nach Änderungen an den Bildern erneut ausführen und die Bilder kurz sichten (SVG-Grafiken sind oft unbrauchbar).
 
 ## GitHub & Veröffentlichen
-- Projekt: github.com/CallMeJan57/partykiste (privat). Zweige: `main` = Zwischenspeicher, `live` = veröffentlicht (Netlify baut nur `live`)
-- Änderungen committen und nach `main` pushen – kostet bei Netlify nichts
-- Erst wenn der Nutzer „go“ sagt: `main` nach `live` mergen und `live` pushen (jede Veröffentlichung kostet Netlify-Credits)
+- Projekt: github.com/CallMeJan57/partykiste (öffentlich). Seite: https://callmejan57.github.io/partykiste/ (GitHub Pages, liegt in einem Unterordner – deshalb nur relative Pfade verwenden)
+- Zweige: `main` = Zwischenspeicher, `live` = veröffentlicht (GitHub Pages baut nur `live`)
+- Änderungen committen und nach `main` pushen
+- Erst wenn der Nutzer „go“ sagt: `main` nach `live` mergen und `live` pushen
 
 ## Artifact synchron halten
 Nach jeder Änderung an der App das Artifact aktualisieren:
