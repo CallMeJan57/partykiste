@@ -23,7 +23,7 @@ Lokal starten: `python3 tools/serve.py` (wie `python3 -m http.server 8000`, aber
 - Projekt: github.com/CallMeJan57/partykiste (öffentlich). Seite: https://callmejan57.github.io/partykiste/ (GitHub Pages, liegt in einem Unterordner – deshalb nur relative Pfade verwenden)
 - Zweige: `main` = Zwischenspeicher, `live` = veröffentlicht (GitHub Pages baut nur `live`)
 - Änderungen committen und nach `main` pushen
-- Erst wenn der Nutzer „go“ sagt: `main` nach `live` mergen und `live` pushen
+- Veröffentlichen (`main` nach `live` mergen, `live` pushen) nur, wenn der Nutzer darum bittet – kein festes Codewort; er kann es auch selbst per Pull Request auf GitHub machen
 
 ## Artifact synchron halten
 Nach jeder Änderung an der App das Artifact aktualisieren:
