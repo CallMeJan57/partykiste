@@ -21,11 +21,12 @@ import regelrad from './regelrad/index.js';
 import schaetzen from './schaetzen/index.js';
 import imposter from './imposter/index.js';
 import emojiRaten from './emoji-raten/index.js';
+import dunkleRaetsel from './dunkle-raetsel/index.js';
 
 // Abschnitte auf der Startseite (per id). Spiele, die hier fehlen, landen unter „Weitere Spiele“.
 export const sections = [
   { emoji: '🍻', title: 'Quatschen & Trinken', ids: ['noch-nie', 'wahrheit-pflicht', 'wer-wuerde-eher', 'kiss-marry-kill'] },
-  { emoji: '🧠', title: 'Raten & Rätseln', ids: ['song-raten', 'emoji-raten', 'schaetzen', 'imposter'] },
+  { emoji: '🧠', title: 'Raten & Rätseln', ids: ['song-raten', 'emoji-raten', 'schaetzen', 'imposter', 'dunkle-raetsel'] },
   { emoji: '🎭', title: 'Action & Kreativ', ids: ['bombe', 'pantomime', 'blind-zeichnen', 'storychaos', 'yoga'] },
 ];
 
@@ -44,4 +45,5 @@ export const games = [
   schaetzen,
   imposter,
   emojiRaten,
+  dunkleRaetsel,
 ];
