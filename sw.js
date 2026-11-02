@@ -15,6 +15,7 @@ const CORE = [
   'css/components.css',
   'css/hub.css',
   'css/dice.css',
+  'css/coin.css',
   'icons/icon-192.png',
   'icons/apple-touch-icon.png',
 ];

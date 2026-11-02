@@ -1,26 +1,16 @@
 import { $, esc } from '../../core/dom.js';
 import { shuffle } from '../../core/random.js';
-import { bindPlayerEditor, bindSegmented, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, splitLetters, toggleList } from '../../core/ui.js';
+import { getTeams } from '../../core/teams.js';
+import { bindPlayerEditor, bindSegmented, bindTeamEditor, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, splitLetters, teamEditor, toggleList } from '../../core/ui.js';
 import levels from './cards.js';
 
 const DEFAULT_LEVELS = ['leicht', 'mittel'];
 const TIMES = ['45', '60', '90'];       // Sekunden pro Zug
 const ROUND_COUNTS = ['2', '3', '5'];   // Züge pro Team
-const TEAM_COUNTS = ['2', '3', '4'];
 const SKIP_RULES = [
   { value: 'free', label: 'Kostenlos' },
   { value: 'cost', label: '−1 Punkt' },
 ];
-
-const TEAMS = [
-  { name: 'Team Feuer', emoji: '🔥', color: '#ff5a36' },
-  { name: 'Team Eis', emoji: '❄️', color: '#38a9f0' },
-  { name: 'Team Gift', emoji: '🧪', color: '#34c46b' },
-  { name: 'Team Blitz', emoji: '⚡', color: '#eab308' },
-];
-
-// Pro Team mindestens so viele Namen, damit jemand erklärt und jemand rät
-const MIN_TEAM_SIZE = 2;
 
 const URGENT_SECONDS = 10;  // ab hier tickt es und die Lunte wird rot
 const LONG_WORD = 12;       // ab so vielen Zeichen wird der Begriff kleiner gesetzt
@@ -73,12 +63,10 @@ function mount(ctx) {
   let selected = loadSelection();
   let time = TIMES.includes(storage.get('time')) ? storage.get('time') : '60';
   let rounds = ROUND_COUNTS.includes(storage.get('rounds')) ? storage.get('rounds') : '3';
-  let teamCount = TEAM_COUNTS.includes(storage.get('teams')) ? storage.get('teams') : '2';
   let skipRule = SKIP_RULES.some((rule) => rule.value === storage.get('skip')) ? storage.get('skip') : 'free';
   let players = ctx.players.get();
-  let assignment = storage.get('assignment', {}); // Name → Nummer des Teams, bleibt gespeichert
 
-  let sides = [];      // { name, emoji, color, members, score }
+  let sides = [];      // Teams aus core/teams.js (auf der Startseite oder hier eingeteilt) plus score
   let turn = 0;        // laufender Zug über alle Teams
   let deck = [];
   let current = null;  // { word, taboo, level }
@@ -105,41 +93,6 @@ function mount(ctx) {
 
   function explainer(team) {
     return team.members.length ? team.members[(roundNumber() - 1) % team.members.length] : null;
-  }
-
-  function teamSize(index) {
-    return players.filter((name) => assignment[name] === index).length;
-  }
-
-  // Neue Namen kommen ins kleinste Team, und jedes Team behält genug Leute
-  function syncAssignment(count) {
-    const next = {};
-    for (const name of players) {
-      if (assignment[name] < count) next[name] = assignment[name];
-    }
-    assignment = next;
-    const sizes = () => Array.from({ length: count }, (_, index) => teamSize(index));
-    for (const name of shuffle(players).filter((entry) => !(entry in assignment))) {
-      assignment[name] = sizes().indexOf(Math.min(...sizes()));
-    }
-    while (Math.min(...sizes()) < MIN_TEAM_SIZE) {
-      const largest = sizes().indexOf(Math.max(...sizes()));
-      const moved = players.findLast((name) => assignment[name] === largest);
-      assignment[moved] = sizes().indexOf(Math.min(...sizes()));
-    }
-    storage.set('assignment', assignment);
-  }
-
-  // Reichen die Namen nicht für alle Teams, spielen die Teams ohne Namen
-  function buildSides() {
-    const count = Number(teamCount);
-    const enough = players.length >= count * MIN_TEAM_SIZE;
-    if (enough) syncAssignment(count);
-    return TEAMS.slice(0, count).map((team, index) => ({
-      ...team,
-      score: 0,
-      members: enough ? players.filter((name) => assignment[name] === index) : [],
-    }));
   }
 
   // ---------- Einstellungen ----------
@@ -187,72 +140,13 @@ function mount(ctx) {
           icon: '👥',
           title: 'Teams',
           body: `
-            ${setupRow({
-              label: 'Anzahl Teams',
-              control: segmented({ name: 'teams', label: 'Anzahl Teams', options: TEAM_COUNTS.map((value) => ({ value, label: value })), value: teamCount }),
-            })}
             ${playerEditor({ name: 'players' })}
-            <div class="tb-teams"></div>`,
+            <hr class="tb-divider">
+            ${teamEditor({ name: 'teams' })}`,
+          note: 'Teams und Einteilung gelten auch auf der Startseite und in anderen Spielen.',
         },
       ],
       start: '<button class="btn btn-primary" type="button" data-action="start">Los geht\'s</button>',
-    });
-
-    const teamsBox = $('.tb-teams', root);
-    let picked = null; // angetippter Name, der das Team wechseln soll
-
-    const renderTeams = () => {
-      const preview = buildSides();
-      if (!preview[0].members.length) {
-        picked = null;
-        teamsBox.innerHTML = `<p class="tb-small">Ab ${Number(teamCount) * MIN_TEAM_SIZE} Namen teilt das Spiel die Teams ein und sagt, wer erklärt. Sonst einigt ihr euch selbst.</p>`;
-        return;
-      }
-      if (!players.includes(picked)) picked = null;
-      teamsBox.innerHTML = `
-        <ul class="tb-team-list">
-          ${preview.map((team, index) => `
-            <li class="${picked && assignment[picked] !== index ? 'is-target' : ''}" style="--team: ${team.color}" data-team="${index}">
-              <b>${team.emoji} ${team.name}</b>
-              <div class="tb-members">
-                ${team.members.map((name) => `<button class="tb-member" type="button" data-name="${esc(name)}" aria-pressed="${name === picked}">${esc(name)}</button>`).join('')}
-              </div>
-            </li>`).join('')}
-        </ul>
-        <p class="tb-small">${picked ? `Wohin soll ${esc(picked)}? Team oder Namen zum Tauschen antippen.` : 'Name antippen, um das Team zu wechseln.'}</p>
-        <button class="btn-link" type="button" data-action="mix">Teams neu mischen</button>`;
-    };
-
-    const changeTeams = () => {
-      picked = null;
-      storage.set('assignment', assignment);
-      sound.deal();
-      vibrate(10);
-      renderTeams();
-    };
-
-    teamsBox.addEventListener('click', (event) => {
-      if (event.target.closest('[data-action="mix"]')) {
-        assignment = {};
-        changeTeams();
-        return;
-      }
-      const name = event.target.closest('[data-name]')?.dataset.name;
-      const team = event.target.closest('[data-team]');
-      if (name && (!picked || assignment[name] === assignment[picked])) {
-        picked = name === picked ? null : name;
-        renderTeams();
-      } else if (name) {
-        [assignment[name], assignment[picked]] = [assignment[picked], assignment[name]];
-        changeTeams();
-      } else if (team && picked && Number(team.dataset.team) !== assignment[picked]) {
-        if (teamSize(assignment[picked]) <= MIN_TEAM_SIZE) {
-          fx.toast(`Jedes Team braucht mindestens ${MIN_TEAM_SIZE} Personen`);
-          return;
-        }
-        assignment[picked] = Number(team.dataset.team);
-        changeTeams();
-      }
     });
 
     bindToggleList(root, 'levels', (values) => {
@@ -271,24 +165,19 @@ function mount(ctx) {
       skipRule = value;
       storage.set('skip', value);
     });
-    bindSegmented(root, 'teams', (value) => {
-      teamCount = value;
-      storage.set('teams', value);
-      renderTeams();
-    });
+    const teams = bindTeamEditor(root, 'teams', { open: true });
     players = bindPlayerEditor(root, 'players', {
       min: 0,
       onChange: (list) => {
         players = list;
-        renderTeams();
+        teams.refresh(list);
       },
     });
-    renderTeams();
     $('[data-action="start"]', root).addEventListener('click', startGame);
   }
 
   function startGame() {
-    sides = buildSides();
+    sides = getTeams(players).map((team) => ({ ...team, score: 0 }));
     turn = 0;
     deck = [];
     showHandover();
@@ -311,7 +200,7 @@ function mount(ctx) {
         <span class="tb-wipe" aria-hidden="true"></span>
         <p class="eyebrow">Zug ${roundNumber()} von ${rounds}</p>
         <span class="tb-badge" aria-hidden="true">${team.emoji}</span>
-        <h1 class="tb-team-name" aria-label="${team.name}">${splitLetters(team.name, { prefix: 'tb' })}</h1>
+        <h1 class="tb-team-name" aria-label="${esc(team.name)}">${splitLetters(team.name, { prefix: 'tb' })}</h1>
         <p class="tb-explainer">${name ? `<b>${esc(name)}</b> erklärt` : 'Eine Person aus dem Team erklärt'}</p>
         <p class="tb-small">Die anderen Teams schauen mit aufs Handy und rufen „Tabu!“, sobald ein gesperrtes Wort fällt.</p>
         <button class="btn btn-primary" type="button" data-action="ready">Bereit</button>
@@ -356,7 +245,7 @@ function mount(ctx) {
     root.innerHTML = `
       <section class="screen tb-run" style="--team: ${team.color}">
         <div class="tb-bar">
-          <span class="tb-chip">${team.emoji} ${name ? esc(name) : team.name}</span>
+          <span class="tb-chip">${team.emoji} ${esc(name ?? team.name)}</span>
           <span class="tb-time" role="timer">${time}</span>
           <span class="tb-chip tb-gain"><b data-gained>0</b> Pkt.</span>
         </div>
@@ -511,7 +400,7 @@ function mount(ctx) {
 
     root.innerHTML = `
       <section class="screen tb-summary" style="--team: ${team.color}">
-        <p class="eyebrow">${team.emoji} ${team.name} · Zug ${roundNumber()} von ${rounds}</p>
+        <p class="eyebrow">${team.emoji} ${esc(team.name)} · Zug ${roundNumber()} von ${rounds}</p>
         <h1 class="tb-delta">${formatPoints(gained)} ${Math.abs(gained) === 1 ? 'Punkt' : 'Punkte'}</h1>
         ${log.length ? `
           <ul class="tb-log">
@@ -520,12 +409,12 @@ function mount(ctx) {
         <ul class="tb-board">
           ${[...sides].sort((a, b) => b.score - a.score).map((entry, index) => `
             <li class="${entry === team ? 'is-current' : ''}" style="--team: ${entry.color}; --share: ${Math.max(0, entry.score) / best}; --i: ${index}">
-              <span>${entry.emoji} ${entry.name}</span>
+              <span>${entry.emoji} ${esc(entry.name)}</span>
               <b>${String(entry.score).replace('-', '−')}</b>
               <i></i>
             </li>`).join('')}
         </ul>
-        <button class="btn btn-primary" type="button" data-action="next">${last ? 'Zum Ergebnis' : `Weiter: ${nextTeam.name}`}</button>
+        <button class="btn btn-primary" type="button" data-action="next">${last ? 'Zum Ergebnis' : `Weiter: ${esc(nextTeam.name)}`}</button>
         <button class="btn-link" type="button" data-action="end">Spiel beenden</button>
       </section>`;
 

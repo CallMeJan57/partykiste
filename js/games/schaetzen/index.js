@@ -1,6 +1,7 @@
 import { $, esc } from '../../core/dom.js';
 import { between, shuffle } from '../../core/random.js';
-import { bindPlayerEditor, bindSegmented, bindToggleList, playerEditor, rankingList, segmented, setupScreen, toggleList } from '../../core/ui.js';
+import { getTeams, teamLabel } from '../../core/teams.js';
+import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupScreen, teamModeControl, toggleList } from '../../core/ui.js';
 import images from './images.js';
 import { categories } from './questions.js';
 
@@ -168,6 +169,8 @@ function mount(ctx) {
   let rounds = ROUND_OPTIONS.includes(storage.get('rounds')) ? storage.get('rounds') : DEFAULT_ROUNDS;
   let players = ctx.players.get();
   let named = false;
+  let mode = storage.get('mode') === 'teams' ? 'teams' : 'solo';
+  let sides = [];      // im Teammodus: Teams aus core/teams.js, jedes Team schätzt gemeinsam
   let points = new Map();
   let queue = [];
   let endless = false; // Endlos-Modus: Fragen gehen nie aus, beendet wird über „Spiel beenden“
@@ -184,7 +187,12 @@ function mount(ctx) {
   }
 
   function guessers() {
+    if (sides.length) return sides.map((team) => team.name);
     return named ? players : ['Du'];
+  }
+
+  function teamOf(name) {
+    return sides.find((team) => team.name === name);
   }
 
   // ---------- Einstellungen ----------
@@ -227,7 +235,7 @@ function mount(ctx) {
           icon: '👥',
           title: 'Mitspieler',
           optional: true,
-          body: playerEditor({ name: 'players' }),
+          body: `${playerEditor({ name: 'players' })}${teamModeControl({ value: mode })}`,
           note: '<span class="sz-players-hint"></span>',
         },
       ],
@@ -237,6 +245,11 @@ function mount(ctx) {
     const startButton = $('[data-action="start"]', root);
     const playersHint = $('.sz-players-hint', root);
     const updateStart = () => {
+      if (mode === 'teams') {
+        startButton.textContent = "Los geht's";
+        playersHint.textContent = 'Jedes Team einigt sich auf eine Schätzung und gibt sie verdeckt ab. Das Team am nächsten dran bekommt einen Punkt, ein Volltreffer einen Bonus.';
+        return;
+      }
       const withNames = players.length >= NAMED_MIN_PLAYERS;
       startButton.textContent = withNames ? "Los geht's" : 'Solo spielen';
       playersHint.textContent = withNames
@@ -252,10 +265,18 @@ function mount(ctx) {
       rounds = value;
       storage.set('rounds', value);
     });
+    const teams = bindTeamMode(root, {
+      onChange: (value) => {
+        mode = value;
+        storage.set('mode', value);
+        updateStart();
+      },
+    });
     players = bindPlayerEditor(root, 'players', {
       min: 0,
       onChange: (list) => {
         players = list;
+        teams.refresh(list);
         updateStart();
       },
     });
@@ -264,7 +285,8 @@ function mount(ctx) {
   }
 
   function startGame() {
-    named = players.length >= NAMED_MIN_PLAYERS;
+    sides = mode === 'teams' ? getTeams(players) : [];
+    named = sides.length > 0 || players.length >= NAMED_MIN_PLAYERS;
     points = new Map(guessers().map((name) => [name, 0]));
     endless = rounds === 'endlos';
     queue = endless ? shuffle(questionPool()) : shuffle(questionPool()).slice(0, Number(rounds));
@@ -492,7 +514,7 @@ function mount(ctx) {
       const label = named ? guess.name : 'Du';
       return `
         <span class="sz-marker${result.winner ? ' is-winner' : ''}${t < 0 || t > 1 ? ' is-outside' : ''}" style="left: ${clampT(t) * 100}%; --row: ${markerRows.get(guess)}" data-index="${index}">
-          <span class="sz-marker-pin">${esc(label.slice(0, 2))}</span>
+          <span class="sz-marker-pin">${teamOf(label) ? teamOf(label).emoji : esc(label.slice(0, 2))}</span>
           <span class="sz-marker-name">${esc(label)}</span>
         </span>`;
     }).join('');
@@ -628,8 +650,8 @@ function mount(ctx) {
       const best = ranked[0][1];
       const winners = ranked.filter(([, score]) => score === best && best > 0).map(([name]) => name);
       body = `
-        <p class="sz-end-title">${winners.length ? `${winners.map(esc).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!` : 'Unentschieden'}</p>
-        ${rankingList(ranked.map(([name, value]) => ({ name, value })))}`;
+        <p class="sz-end-title">${winners.length ? `${winners.map((winner) => esc(teamOf(winner) ? teamLabel(teamOf(winner)) : winner)).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!` : 'Unentschieden'}</p>
+        ${rankingList(ranked.map(([name, value]) => ({ name: teamOf(name) ? teamLabel(teamOf(name)) : name, value, note: teamOf(name)?.members.join(', ') })))}`;
     } else {
       const total = points.get('Du') ?? 0;
       const average = Math.round(total / played);

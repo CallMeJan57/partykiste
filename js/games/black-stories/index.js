@@ -1,6 +1,7 @@
 import { $, esc } from '../../core/dom.js';
 import { shuffle } from '../../core/random.js';
-import { bindPlayerEditor, bindSegmented, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, toggleList } from '../../core/ui.js';
+import { getTeams, teamLabel, teamMember } from '../../core/teams.js';
+import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, teamModeControl, toggleList } from '../../core/ui.js';
 import categories from './cases.js';
 
 const DEFAULT_CATEGORIES = ['mord', 'krimi', 'makaber', 'grusel'];
@@ -133,6 +134,8 @@ function mount(ctx) {
   let players = ctx.players.get();
 
   let named = false;
+  let playAs = storage.get('playAs') === 'teams' ? 'teams' : 'solo';
+  let sides = [];      // im Teammodus: Teams aus core/teams.js leiten reihum den Fall
   let scores = new Map();
   let deck = [];
   let caseNumber = 0;
@@ -159,8 +162,31 @@ function mount(ctx) {
     return limit === 'ohne' ? Infinity : Number(limit);
   }
 
+  // Wer reihum dran ist: Namen oder Teams
+  function lineup() {
+    return sides.length ? sides.map((team) => team.name) : players;
+  }
+
+  // Wer den Fall leitet (für die Punkte): Name bzw. Team
   function master() {
-    return named ? players[turn % players.length] : null;
+    return named ? lineup()[turn % lineup().length] : null;
+  }
+
+  // Wer das Handy bekommt: im Teammodus die Person aus dem Team, sonst der Name
+  function leaderLabel() {
+    if (!sides.length) return master();
+    const team = sides[turn % sides.length];
+    return teamMember(team, Math.floor(turn / sides.length)) ?? team.name;
+  }
+
+  function teamOf(name) {
+    return sides.find((team) => team.name === name);
+  }
+
+  // Name für Punkte und Rangliste – im Teammodus mit Symbol
+  function label(name) {
+    const team = teamOf(name);
+    return team ? teamLabel(team) : name;
   }
 
   // ---------- Einstellungen ----------
@@ -201,7 +227,7 @@ function mount(ctx) {
           icon: '👥',
           title: 'Mitspieler',
           optional: true,
-          body: playerEditor({ name: 'players' }),
+          body: `${playerEditor({ name: 'players' })}${teamModeControl({ value: playAs })}`,
           note: '<span class="dr-players-hint"></span>',
         },
       ],
@@ -210,6 +236,10 @@ function mount(ctx) {
 
     const hint = $('.dr-players-hint', root);
     const updateHint = () => {
+      if (playAs === 'teams') {
+        hint.textContent = `Die Teams leiten reihum den Fall. Löst ein anderes Team ihn, bekommt es bis zu ${MAX_POINTS} Punkte – bleibt er ungelöst, punktet das leitende Team.`;
+        return;
+      }
       hint.textContent = players.length >= NAMED_MIN_PLAYERS
         ? `Reihum leitet jemand den Fall. Wer ihn löst, bekommt bis zu ${MAX_POINTS} Punkte.`
         : 'Mit Namen leitet reihum jemand den Fall, und es gibt Punkte.';
@@ -223,10 +253,18 @@ function mount(ctx) {
       limit = value;
       storage.set('limit', value);
     });
+    const teams = bindTeamMode(root, {
+      onChange: (value) => {
+        playAs = value;
+        storage.set('playAs', value);
+        updateHint();
+      },
+    });
     players = bindPlayerEditor(root, 'players', {
       min: 0,
       onChange: (list) => {
         players = list;
+        teams.refresh(list);
         updateHint();
       },
     });
@@ -235,8 +273,9 @@ function mount(ctx) {
   }
 
   function startGame() {
-    named = players.length >= NAMED_MIN_PLAYERS;
-    scores = new Map(players.map((name) => [name, 0]));
+    sides = playAs === 'teams' ? getTeams(players) : [];
+    named = sides.length > 0 || players.length >= NAMED_MIN_PLAYERS;
+    scores = new Map(lineup().map((name) => [name, 0]));
     deck = [];
     caseNumber = 0;
     solved = 0;
@@ -263,12 +302,13 @@ function mount(ctx) {
     burned = 0;
     tally = { ja: 0, nein: 0, egal: 0 };
     hintsUsed = 0;
-    const name = master();
+    const name = leaderLabel();
+    const team = sides.length ? teamOf(master()) : null;
 
     root.innerHTML = `
       <section class="screen dr-case">
         <div class="dr-case-head">
-          <p class="eyebrow">Fall ${caseNumber}</p>
+          <p class="eyebrow">Fall ${caseNumber}${team ? ` · ${esc(teamLabel(team))}` : ''}</p>
           <h1 class="dr-who">${name ? `${esc(name)} leitet den Fall` : 'Wer leitet den Fall?'}</h1>
           <p class="dr-lede">${name ? `Gib ${esc(name)} das Handy.` : 'Eine Person nimmt das Handy und liest vor.'}</p>
         </div>
@@ -607,7 +647,7 @@ function mount(ctx) {
     if (success) solved += 1;
     const name = master();
     const points = Math.max(1, MAX_POINTS - hintsUsed);
-    const others = named ? players.filter((player) => player !== name) : [];
+    const others = named ? lineup().filter((player) => player !== name) : [];
     const heading = { solved: 'Fall gelöst', 'given-up': 'Aufgegeben', out: 'Die Kerze ist erloschen' }[outcome];
 
     // Bleibt der Fall ungelöst, gewinnt die Person, die ihn geleitet hat
@@ -625,12 +665,12 @@ function mount(ctx) {
           <p class="eyebrow">Was wirklich geschah</p>
           <p class="dr-solution-text">${words}</p>
         </div>
-        ${!success && named ? `<p class="dr-small dr-center">+1 Punkt für ${esc(name)}, der Fall blieb ungelöst.</p>` : ''}
+        ${!success && named ? `<p class="dr-small dr-center">+1 Punkt für ${esc(label(name))}, der Fall blieb ungelöst.</p>` : ''}
         ${success && named ? `
           <div class="dr-award">
-            <p class="eyebrow">Wer hat's gelöst? <b>+${points}</b></p>
+            <p class="eyebrow">${sides.length ? 'Welches Team hat ihn gelöst?' : "Wer hat's gelöst?"} <b>+${points}</b></p>
             <div class="dr-award-buttons">
-              ${others.map((player, index) => `<button class="dr-award-btn" type="button" data-player="${esc(player)}" style="--i: ${index}">${esc(player)}</button>`).join('')}
+              ${others.map((player, index) => `<button class="dr-award-btn" type="button" data-player="${esc(player)}" style="--i: ${index}">${esc(label(player))}</button>`).join('')}
             </div>
           </div>` : ''}
         <div class="dr-actions">
@@ -658,7 +698,7 @@ function mount(ctx) {
         scores.set(player, (scores.get(player) ?? 0) + points);
         sound.point();
         button.classList.add('is-picked');
-        fx.toast(`+${points} für ${player}`);
+        fx.toast(`+${points} für ${label(player)}`);
         ctx.timeout(() => {
           busy = false;
           advance();
@@ -684,7 +724,7 @@ function mount(ctx) {
     const best = ranked[0]?.[1] ?? 0;
     const winners = ranked.filter(([, points]) => points === best && best > 0).map(([name]) => name);
     const title = named && winners.length
-      ? `${winners.map(esc).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!`
+      ? `${winners.map((winner) => esc(label(winner))).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!`
       : `${solved} von ${played} gelöst`;
     if (solved) sound.solved();
 
@@ -693,7 +733,7 @@ function mount(ctx) {
         <span class="dr-end-icon" aria-hidden="true">🕯️</span>
         <p class="eyebrow">${played} ${played === 1 ? 'Fall' : 'Fälle'} · ${solved} gelöst</p>
         <p class="dr-end-title">${title}</p>
-        ${named ? rankingList(ranked.map(([name, value]) => ({ name, value }))) : ''}
+        ${named ? rankingList(ranked.map(([name, value]) => ({ name: label(name), value, note: teamOf(name)?.members.join(', ') }))) : ''}
         <button class="btn btn-primary" type="button" data-action="again">Neues Spiel</button>
         <button class="btn-link" type="button" data-action="setup">Einstellungen</button>
       </section>`;

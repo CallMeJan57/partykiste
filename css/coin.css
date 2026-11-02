@@ -1,0 +1,358 @@
+/* Münzwurf (js/coin/coin.js) – Fenster über der Startseite, aufgebaut wie der Würfelbecher */
+
+/* Münz-Knopf in der Kopfzeile: blitzt ab und zu golden auf */
+.coin-btn {
+  color: #d99a16;
+  border-color: color-mix(in srgb, #d99a16 45%, var(--line));
+  animation: coin-btn-flip 7s ease-in-out 1.5s infinite;
+}
+.coin-btn svg { width: 20px; height: 20px; }
+@keyframes coin-btn-flip {
+  0%, 84%, 100% { transform: none; }
+  88% { transform: scaleX(-1) scale(1.08); }
+  92% { transform: scale(1.08); }
+}
+
+html.coin-open { overflow: hidden; }
+
+.coin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 35; /* unter Konfetti (40), Blitz (50) und Hinweisen (60) */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 30%, rgba(30, 20, 10, .55), rgba(5, 4, 3, .78));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.coin-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px var(--gutter) calc(18px + env(safe-area-inset-bottom));
+  border-radius: 30px 30px 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 70%, var(--bg)), var(--bg) 40%);
+  box-shadow: 0 -16px 50px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+.coin-grabber {
+  align-self: center;
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+.coin-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.coin-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #d99a16;
+}
+.coin-title {
+  font-family: var(--font-display);
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: .04em;
+}
+
+/* Bühne: dunkles Samttuch mit Lichtkegel */
+.coin-stage {
+  position: relative;
+  height: 330px;
+  overflow: hidden;
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse at 50% 78%, rgba(255, 220, 140, .16), transparent 55%),
+    radial-gradient(circle at 50% 40%, #3b1f4f, #24122f 55%, #140a1c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 215, 106, .25),
+    inset 0 14px 34px rgba(0, 0, 0, .55),
+    0 14px 30px rgba(0, 0, 0, .35);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.coin-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-radial-gradient(circle at 40% 30%, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px);
+  pointer-events: none;
+}
+.coin-spot {
+  position: absolute;
+  inset: -30% 10% 20%;
+  background: radial-gradient(ellipse at 50% 0, rgba(255, 245, 210, .2), transparent 62%);
+  pointer-events: none;
+}
+
+/* Münze: Mittelpunkt liegt im unteren Drittel, sie fliegt nach oben */
+.coin {
+  --size: 150px;
+  position: absolute;
+  left: 50%;
+  bottom: 62px;
+  width: var(--size);
+  height: var(--size);
+  margin-left: calc(var(--size) / -2);
+}
+.coin-body,
+.coin-edge {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  will-change: transform;
+}
+.coin-edge {
+  background:
+    repeating-linear-gradient(90deg, #8a5c0c 0 2px, #c08a1c 2px 4px);
+  box-shadow: inset 0 -4px 6px rgba(0, 0, 0, .35);
+}
+.coin-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+.coin-face-zahl { display: none; }
+.coin-body.shows-zahl .coin-face-kopf { display: none; }
+.coin-body.shows-zahl .coin-face-zahl { display: block; }
+.coin-ring {
+  font-family: var(--font-display);
+  font-size: 13px;
+  fill: #5e3d06;
+}
+.coin-beads {
+  fill: none;
+  stroke: #a87414;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-dasharray: .1 5;
+}
+.coin-line {
+  fill: none;
+  stroke: #b8841a;
+  stroke-width: 1.6;
+}
+.coin-emboss {
+  fill: #c08a1c;
+  stroke: #8a5c0c;
+  stroke-width: 1.5;
+  paint-order: stroke;
+  filter: drop-shadow(0 1.5px 0 rgba(255, 245, 200, .7));
+}
+.coin-gem { fill: #fff2b8; }
+.coin-laurel {
+  fill: none;
+  stroke: #8a5c0c;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.coin-gloss {
+  fill: none;
+  stroke: rgba(255, 255, 255, .6);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+/* Glanz, der nach der Landung über die Münze streicht */
+.coin-body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .7) 50%, transparent 65%);
+  background-size: 260% 100%;
+  background-position: 120% 0;
+  pointer-events: none;
+}
+.coin.is-glow .coin-body::after { animation: coin-shine .9s ease-out .1s; }
+@keyframes coin-shine {
+  from { background-position: 120% 0; }
+  to { background-position: -40% 0; }
+}
+.coin.is-glow .coin-body { filter: drop-shadow(0 0 0 rgba(255, 215, 106, 0)); animation: coin-glow 1.2s ease-out; }
+@keyframes coin-glow {
+  30% { filter: drop-shadow(0 0 18px rgba(255, 215, 106, .9)); }
+}
+
+.coin-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  width: 150px;
+  height: 30px;
+  margin-left: -75px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .75), transparent);
+  opacity: .6;
+}
+.coin-dust {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  width: 220px;
+  height: 50px;
+  margin-left: -110px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 230, 170, .45), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.coin-banner {
+  position: absolute;
+  top: 18px;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: .05em;
+  color: #ffd76a;
+  text-shadow: 0 0 16px rgba(255, 215, 106, .85), 3px 4px 0 rgba(0, 0, 0, .5);
+  opacity: 0;
+  pointer-events: none;
+}
+.coin-banner.is-on { animation: coin-banner 2.2s cubic-bezier(.3, 1.6, .5, 1) forwards; }
+@keyframes coin-banner {
+  0% { opacity: 0; transform: scale(.4) rotate(-8deg); }
+  22% { opacity: 1; transform: scale(1.1) rotate(-3deg); }
+  80% { opacity: 1; transform: scale(1) rotate(-3deg); }
+  100% { opacity: 0; transform: scale(1) rotate(-3deg) translateY(-10px); }
+}
+
+/* Ergebnis */
+.coin-result {
+  min-height: 60px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 58px;
+  line-height: 1;
+  letter-spacing: .06em;
+  color: #e5a91e;
+}
+.coin-result-value { display: inline-block; }
+.coin-result-value.is-shown { animation: coin-result .55s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes coin-result {
+  from { opacity: 0; transform: scale(.3) rotate(-10deg); }
+}
+
+/* Zählerstand: Balken Kopf gegen Zahl */
+.coin-stats {
+  display: grid;
+  gap: 6px;
+}
+.coin-bar {
+  --kopf: .5;
+  display: flex;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line);
+}
+.coin-bar i {
+  height: 100%;
+  transition: flex-grow .6s cubic-bezier(.3, 1.3, .5, 1);
+}
+.coin-bar .is-kopf { flex-grow: var(--kopf); background: linear-gradient(90deg, #f2c14e, #e5a91e); }
+.coin-bar .is-zahl { flex-grow: calc(1 - var(--kopf)); background: linear-gradient(90deg, #9b7bd0, #6d4bb0); }
+.coin-stats.is-empty .coin-bar i { opacity: .25; }
+.coin-counts {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.coin-counts b {
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+
+/* Verlauf der letzten Würfe */
+.coin-history {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 26px;
+}
+.coin-history-label {
+  margin-right: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.coin-chip {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 1;
+}
+.coin-chip.is-kopf { background: radial-gradient(circle at 35% 30%, #fff2b8, #e5a91e 70%); color: #6b4708; }
+.coin-chip.is-zahl { background: radial-gradient(circle at 35% 30%, #d8c8f2, #7d5cc0 70%); color: #ffffff; }
+.coin-chip.is-new { animation: coin-chip .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes coin-chip {
+  from { transform: translateY(10px) scale(.3) rotateY(180deg); opacity: 0; }
+}
+
+.coin-flip {
+  font-size: 30px;
+  letter-spacing: .1em;
+  background: linear-gradient(180deg, #ffe08a, #e0a52a);
+  color: #3b2604;
+  box-shadow: 0 8px 24px rgba(224, 165, 42, .35);
+}
+.coin-flip:not(:disabled) { animation: coin-ready 2.4s ease-in-out infinite; }
+@keyframes coin-ready {
+  50% { box-shadow: 0 8px 34px rgba(224, 165, 42, .65); }
+}
+.coin-hint {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.coin-reset {
+  appearance: none;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coin-btn,
+  .coin-banner.is-on,
+  .coin-result-value.is-shown,
+  .coin-chip.is-new,
+  .coin-flip,
+  .coin.is-glow .coin-body,
+  .coin.is-glow .coin-body::after { animation: none; }
+  .coin-banner.is-on { opacity: 1; }
+}

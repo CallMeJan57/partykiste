@@ -1,6 +1,7 @@
 import { $, esc } from '../../core/dom.js';
 import { pick, shuffle } from '../../core/random.js';
-import { bindPlayerEditor, bindSegmented, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, toggleList } from '../../core/ui.js';
+import { getTeams, teamLabel, teamMember } from '../../core/teams.js';
+import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, teamModeControl, toggleList } from '../../core/ui.js';
 import { categories, twists } from './terms.js';
 
 const TIMES = ['20', '30', '45', '60']; // Zeichenzeit in Sekunden
@@ -76,6 +77,8 @@ function mount(ctx) {
   let chaos = storage.get('chaos') === 'an' ? 'an' : 'aus';
   let players = ctx.players.get();
   let named = false;
+  let mode = storage.get('mode') === 'teams' ? 'teams' : 'solo';
+  let sides = [];     // im Teammodus: Teams aus core/teams.js, reihum dran
   let points = new Map();
   let deck = [];
   let turn = 0;
@@ -92,8 +95,23 @@ function mount(ctx) {
     return valid.length ? valid : DEFAULT_CATEGORIES;
   }
 
+  function teamMode() {
+    return mode === 'teams';
+  }
+
   function drawer() {
+    if (teamMode()) return teamMember(sides[turn], Math.floor(round / sides.length));
     return named ? players[turn] : null;
+  }
+
+  function teamOf(name) {
+    return sides.find((team) => team.name === name);
+  }
+
+  // Name für Punktestand und Rangliste – im Teammodus mit Symbol
+  function label(name) {
+    const team = teamOf(name);
+    return team ? teamLabel(team) : name;
   }
 
   // ---------- Einstellungen ----------
@@ -138,7 +156,7 @@ function mount(ctx) {
           icon: '👥',
           title: 'Mitspieler',
           optional: true,
-          body: playerEditor({ name: 'players' }),
+          body: `${playerEditor({ name: 'players' })}${teamModeControl({ value: mode })}`,
           note: '<span class="bz-players-hint"></span>',
         },
       ],
@@ -149,6 +167,11 @@ function mount(ctx) {
     const startButton = $('[data-action="start"]', root);
     const playersHint = $('.bz-players-hint', root);
     const updateStart = () => {
+      if (teamMode()) {
+        startButton.textContent = "Los geht's";
+        playersHint.textContent = 'Die Teams sind reihum dran: Eine Person zeichnet blind, das eigene Team rät. Erraten = 1 Punkt fürs Team.';
+        return;
+      }
       const withNames = players.length >= NAMED_MIN_PLAYERS;
       startButton.textContent = withNames ? "Los geht's" : 'Ohne Namen starten';
       playersHint.textContent = withNames
@@ -168,10 +191,18 @@ function mount(ctx) {
       chaos = value;
       storage.set('chaos', value);
     });
+    const teams = bindTeamMode(root, {
+      onChange: (value) => {
+        mode = value;
+        storage.set('mode', value);
+        updateStart();
+      },
+    });
     players = bindPlayerEditor(root, 'players', {
       min: 0,
       onChange: (list) => {
         players = list;
+        teams.refresh(list);
         updateStart();
       },
     });
@@ -180,8 +211,9 @@ function mount(ctx) {
   }
 
   function startGame() {
-    named = players.length >= NAMED_MIN_PLAYERS;
-    points = new Map(players.map((name) => [name, 0]));
+    sides = teamMode() ? getTeams(players) : [];
+    named = teamMode() || players.length >= NAMED_MIN_PLAYERS;
+    points = new Map((teamMode() ? sides.map((team) => team.name) : players).map((name) => [name, 0]));
     deck = [];
     turn = 0;
     round = 0;
@@ -201,18 +233,19 @@ function mount(ctx) {
 
   function scoreboard() {
     if (!named || !round) return '';
-    const ranked = [...points.entries()].sort((a, b) => b[1] - a[1]);
+    const ranked = [...points.entries()].sort((a, b) => b[1] - a[1]).map(([name, score]) => [label(name), score]);
     return `<ul class="chips bz-scores">${ranked.map(([name, score]) => `<li class="chip">${esc(name)} · ${score}</li>`).join('')}</ul>`;
   }
 
   function showTurn() {
     endLoop();
     const name = drawer();
+    const team = teamMode() ? sides[turn] : null;
     root.innerHTML = `
       <section class="screen bz-turn">
         <div class="bz-head">
-          <p class="eyebrow">Runde ${round + 1}${name ? ' · zeichnet' : ''}</p>
-          <h1 class="bz-who">${name ? esc(name) : 'Wer zeichnet?'}</h1>
+          <p class="eyebrow">Runde ${round + 1}${team ? ` · ${esc(teamLabel(team))}` : name ? ' · zeichnet' : ''}</p>
+          <h1 class="bz-who">${name ? esc(name) : team ? esc(team.name) : 'Wer zeichnet?'}</h1>
         </div>
         ${scoreboard()}
         <div class="bz-eye-wrap is-idle">${EYE}</div>
@@ -418,7 +451,8 @@ function mount(ctx) {
 
   function reveal() {
     const name = drawer();
-    const others = named ? players.filter((player) => player !== name) : [];
+    const team = teamMode() ? sides[turn] : null;
+    const others = named && !team ? players.filter((player) => player !== name) : [];
     $('.bz-reveal-slot', root).innerHTML = paper(current.term);
     $('.bz-call', root).textContent = 'Gesucht war …';
     $('.bz-small', root).remove();
@@ -427,7 +461,7 @@ function mount(ctx) {
     audio.sounds.blip();
 
     const actions = $('.bz-actions', root);
-    actions.innerHTML = named
+    actions.innerHTML = named && !team
       ? `<div class="bz-award">
            <p class="eyebrow">Wer hat's erraten?</p>
            <div class="bz-award-buttons">
@@ -445,7 +479,10 @@ function mount(ctx) {
         audio.sounds.success();
         const styles = getComputedStyle(root);
         fx.burst({ colors: ['--accent', '--accent-2', '--text'].map((token) => styles.getPropertyValue(token).trim()) });
-        if (name && guesser) {
+        if (team) {
+          points.set(team.name, points.get(team.name) + 1);
+          fx.toast(`+1 Punkt für ${teamLabel(team)}`);
+        } else if (name && guesser) {
           points.set(name, points.get(name) + 1);
           points.set(guesser, points.get(guesser) + 1);
           fx.toast(`+1 Punkt für ${name} und ${guesser}`);
@@ -453,7 +490,7 @@ function mount(ctx) {
       } else {
         audio.sounds.fail();
       }
-      if (named) turn = (turn + 1) % players.length;
+      if (named) turn = (turn + 1) % (team ? sides.length : players.length);
       showTurn();
     };
 
@@ -479,8 +516,8 @@ function mount(ctx) {
       const ranked = [...points.entries()].sort((a, b) => b[1] - a[1]);
       const best = ranked[0][1];
       const winners = ranked.filter(([, score]) => score === best && best > 0).map(([player]) => player);
-      title = winners.length ? `${winners.map(esc).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!` : 'Unentschieden';
-      ranking = rankingList(ranked.map(([name, value]) => ({ name, value })));
+      title = winners.length ? `${winners.map((winner) => esc(label(winner))).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!` : 'Unentschieden';
+      ranking = rankingList(ranked.map(([name, value]) => ({ name: label(name), value, note: teamOf(name)?.members.join(', ') })));
     }
     if (guessed) {
       audio.sounds.success();

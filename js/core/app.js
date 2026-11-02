@@ -1,6 +1,7 @@
 // App-Hülle: Kopfzeile, Navigation per URL-Hash (#/ = Auswahl, #/<spiel-id> = Spiel)
 // und das Starten/Beenden der Spiele.
 
+import { COIN_ICON, openCoin } from '../coin/coin.js';
 import { DICE_ICON, openDice } from '../dice/dice.js';
 import { renderHub } from '../hub/hub.js';
 import * as audio from './audio.js';
@@ -142,6 +143,7 @@ export function startApp({ name, games, sections = [], topbar, view }) {
          <div class="topbar-actions">
            ${tools.map((tool) => `<a class="icon-btn tool-btn" href="#/${esc(tool.id)}" aria-label="${esc(tool.title)} öffnen">${tool.icon ?? ''}</a>`).join('')}
            <button class="icon-btn dice-btn" type="button" data-action="dice" aria-label="Würfel öffnen">${DICE_ICON}</button>
+           <button class="icon-btn coin-btn" type="button" data-action="coin" aria-label="Münzwurf öffnen">${COIN_ICON}</button>
            ${mute}
          </div>`;
 
@@ -151,6 +153,7 @@ export function startApp({ name, games, sections = [], topbar, view }) {
 
     $('[data-action="back"]', topbar)?.addEventListener('click', requestExit);
     $('[data-action="dice"]', topbar)?.addEventListener('click', openDice);
+    $('[data-action="coin"]', topbar)?.addEventListener('click', openCoin);
     const muteButton = $('[data-action="mute"]', topbar);
     muteButton.addEventListener('click', () => {
       audio.setMuted(!audio.isMuted());

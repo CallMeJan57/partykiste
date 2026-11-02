@@ -1,6 +1,7 @@
 import { $, esc } from '../../core/dom.js';
 import { shuffle } from '../../core/random.js';
-import { bindPlayerEditor, bindSegmented, bindToggleList, playerEditor, rankingList, segmented, setupScreen, toggleList } from '../../core/ui.js';
+import { getTeams, teamLabel } from '../../core/teams.js';
+import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupScreen, teamModeControl, toggleList } from '../../core/ui.js';
 import { findPreview } from './itunes.js';
 import categories from './songs.js';
 
@@ -72,6 +73,9 @@ function mount(ctx) {
   let selected = loadSelection();
   let clip = CLIP_LENGTHS.includes(storage.get('clip')) ? storage.get('clip') : DEFAULT_CLIP;
   let players = ctx.players.get();
+  let mode = storage.get('mode') === 'teams' ? 'teams' : 'solo';
+  let sides = [];       // im Teammodus: Teams aus core/teams.js
+  let contestants = []; // wer Punkte sammelt: Namen oder Teams
   let scores = new Map();
   let deck = [];
   let round = 0;
@@ -131,8 +135,8 @@ function mount(ctx) {
           icon: '👥',
           title: 'Mitspieler',
           optional: true,
-          body: playerEditor({ name: 'players' }),
-          note: 'Mit Namen zählt das Spiel Punkte. Ohne Namen wird einfach nur geraten.',
+          body: `${playerEditor({ name: 'players' })}${teamModeControl({ value: mode })}`,
+          note: 'Mit Namen oder in Teams zählt das Spiel Punkte. Ohne wird einfach nur geraten.',
         },
       ],
       start: `<button class="btn btn-primary" type="button" data-action="start">Los geht's</button>`,
@@ -147,16 +151,37 @@ function mount(ctx) {
       clip = value;
       storage.set('clip', value);
     });
+    const teams = bindTeamMode(root, {
+      onChange: (value) => {
+        mode = value;
+        storage.set('mode', value);
+      },
+    });
     players = bindPlayerEditor(root, 'players', {
       min: 0,
-      onChange: (list) => { players = list; },
+      onChange: (list) => {
+        players = list;
+        teams.refresh(list);
+      },
     });
     $('[data-action="start"]', root).addEventListener('click', startGame);
   }
 
+  function teamOf(name) {
+    return sides.find((team) => team.name === name);
+  }
+
+  // Name für Punktestand und Rangliste – im Teammodus mit Symbol
+  function label(name) {
+    const team = teamOf(name);
+    return team ? teamLabel(team) : name;
+  }
+
   function startGame() {
     audio.unlock();
-    scores = new Map(players.map((player) => [player, 0]));
+    sides = mode === 'teams' ? getTeams(players) : [];
+    contestants = sides.length ? sides.map((team) => team.name) : [...players];
+    scores = new Map(contestants.map((name) => [name, 0]));
     deck = [];
     round = 0;
     revealed = 0;
@@ -344,8 +369,8 @@ function mount(ctx) {
   // ---------- Bildschirme ----------
 
   function scoreboard() {
-    if (!players.length) return '';
-    const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1]);
+    if (!contestants.length) return '';
+    const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1]).map(([name, points]) => [label(name), points]);
     return `<ul class="chips sr-scores">${ranked.map(([name, points]) => `<li class="chip">${esc(name)} · ${points}</li>`).join('')}</ul>`;
   }
 
@@ -454,11 +479,11 @@ function mount(ctx) {
     const cover = song.cover
       ? `<img class="sr-cover" src="${esc(song.cover)}" alt="Cover von ${esc(song.title)}" referrerpolicy="no-referrer">`
       : '';
-    const award = players.length
+    const award = contestants.length
       ? `<div class="sr-award">
-           <p class="eyebrow">Wer hatte es zuerst?</p>
+           <p class="eyebrow">${sides.length ? 'Welches Team hatte es zuerst?' : 'Wer hatte es zuerst?'}</p>
            <div class="sr-award-buttons">
-             ${players.map((name, index) => `<button class="sr-award-btn" type="button" data-player="${index}">${esc(name)}</button>`).join('')}
+             ${contestants.map((name, index) => `<button class="sr-award-btn${sides.length ? ' is-team' : ''}" type="button" data-player="${index}"${sides.length ? ` style="--team: ${sides[index].color}"` : ''}>${esc(label(name))}</button>`).join('')}
              <button class="sr-award-btn sr-award-none" type="button" data-player="-1">Keiner</button>
            </div>
          </div>`
@@ -509,9 +534,9 @@ function mount(ctx) {
       button.addEventListener('click', () => {
         const index = Number(button.dataset.player);
         if (index >= 0) {
-          const name = players[index];
+          const name = contestants[index];
           scores.set(name, (scores.get(name) ?? 0) + 1);
-          fx.toast(`+1 Punkt für ${name}`);
+          fx.toast(`+1 Punkt für ${label(name)}`);
           if (!fx.reducedMotion()) {
             plusOne(button);
             ctx.timeout(nextRound, 650);
@@ -549,7 +574,7 @@ function mount(ctx) {
 
   function showEnd() {
     stopClip();
-    if (!players.length) {
+    if (!contestants.length) {
       showSetup();
       return;
     }
@@ -565,8 +590,8 @@ function mount(ctx) {
     root.innerHTML = `
       <section class="screen sr-message" data-leave-free>
         <p class="eyebrow">${revealed} ${revealed === 1 ? 'Song' : 'Songs'} gespielt</p>
-        <p class="sr-message-title">${winners.length ? `${winners.map(esc).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!` : 'Unentschieden'}</p>
-        ${rankingList(ranked.map(([name, value]) => ({ name, value })))}
+        <p class="sr-message-title">${winners.length ? `${winners.map((winner) => esc(label(winner))).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!` : 'Unentschieden'}</p>
+        ${rankingList(ranked.map(([name, value]) => ({ name: label(name), value, note: teamOf(name)?.members.join(', ') })))}
         <button class="btn btn-primary" type="button" data-action="again">Neues Spiel</button>
         <button class="btn-link" type="button" data-action="setup">Einstellungen</button>
       </section>`;

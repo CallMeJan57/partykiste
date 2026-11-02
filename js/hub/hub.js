@@ -1,7 +1,7 @@
 // Spieleauswahl: eine Karte pro Spiel aus js/games/index.js (Werkzeuge wie das Regelrad sitzen in der Kopfzeile).
 
 import { esc } from '../core/dom.js';
-import { bindPlayerEditor, playerEditor, splitLetters } from '../core/ui.js';
+import { bindPlayerEditor, bindTeamEditor, playerEditor, splitLetters, teamEditor } from '../core/ui.js';
 import { loadActiveRules, saveActiveRules, untilLabel } from '../games/regelrad/active-rules.js';
 
 const RULE_GAME_ID = 'regelrad';
@@ -24,7 +24,11 @@ export function renderHub(view, { games, sections = [], tools = [], onOpen }) {
           <span class="hub-line">${letters('wir', 12)} <em class="hub-today">${letters('heute', 16)}<span class="hub-q" style="--i: 21">?</span></em><span class="hub-party" aria-hidden="true">🎉</span></span>
         </h1>
       </header>
-      <section class="hub-players">${playerEditor({ name: 'hub-players' })}</section>
+      <section class="hub-players">
+        ${playerEditor({ name: 'hub-players' })}
+        <hr class="hub-divider">
+        ${teamEditor({ name: 'hub-teams' })}
+      </section>
       <div class="hub-rules" aria-live="polite"></div>
       ${groupGames(games, sections).map((group) => `
         <section class="hub-section">
@@ -39,8 +43,9 @@ export function renderHub(view, { games, sections = [], tools = [], onOpen }) {
     link.addEventListener('click', onOpen);
   }
   renderRules(view.querySelector('.hub-rules'), [...tools, ...games].find((game) => game.id === RULE_GAME_ID), onOpen);
-  // Mitspieler direkt auf der Startseite – dieselbe Liste wie in allen Spielen
-  bindPlayerEditor(view, 'hub-players', { min: 0 });
+  // Mitspieler und Teams direkt auf der Startseite – dieselben wie in allen Spielen
+  const teams = bindTeamEditor(view, 'hub-teams');
+  bindPlayerEditor(view, 'hub-players', { min: 0, onChange: (players) => teams.refresh(players) });
 }
 
 // Buchstaben, die per CSS nacheinander erscheinen (Klassen .hub-word / .hub-letter)
