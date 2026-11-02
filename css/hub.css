@@ -135,6 +135,11 @@
   transition: border-color .2s ease;
 }
 .hub-players:has(.players.is-open) { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+.hub-divider {
+  margin: 10px 0;
+  border: 0;
+  border-top: 1px dashed var(--line);
+}
 
 /* Abschnitt mit Überschrift und feiner Linie bis zum Rand */
 .hub-section {

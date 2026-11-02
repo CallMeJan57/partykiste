@@ -10,6 +10,7 @@ Lokal starten: `python3 tools/serve.py` (wie `python3 -m http.server 8000`, aber
 - Endbildschirme: Rangliste über `rankingList()`, Buchstaben-Animationen über `splitLetters()` (beides `js/core/ui.js`)
 - Läuft ein Spiel, fragt die App vor dem Verlassen nach (`js/core/app.js`). Einstellungen (`.setup`) und Bildschirme mit `data-leave-free` (Endbildschirme) sind ausgenommen – neue Endbildschirme entsprechend markieren
 - Als App installierbar und offline spielbar: `manifest.webmanifest`, `sw.js` (eigene Dateien „Netz zuerst“), Anmeldung in `js/core/offline.js`. App-Symbole in `icons/` aus `icons/icon.svg` mit `python3 tools/app-icons.py` erzeugen
+- Teams: `js/core/teams.js` (gemeinsam für alle Spiele, gespeichert wie die Spielerliste: Anzahl Teams oder Personen pro Team, zufällig oder selbst eingeteilt, eigene Namen, sonst vorgefertigte) mit dem Baustein `teamEditor()`/`bindTeamEditor()` in `js/core/ui.js`; auf der Startseite und in Tabu. Spiele mit Teams holen sie über `getTeams()`
 - `js/core/` – gemeinsame Dienste (Router/App-Hülle, `ctx` mit auto-aufgeräumten Timern, Audio, FX, Storage, UI, app-weite Spielerliste)
 - `css/` – Design-Tokens (helles + dunkles Theme), gemeinsame Bausteine, Startseite
 - `js/dice/` + `css/dice.css` – Würfelbecher (kein Spiel): Würfel-Knopf in der Kopfzeile der Startseite, öffnet ein Fenster mit 1–5 Würfeln (flach in 2D – 3D-Würfel liefen ruckelig und fehlerhaft)

@@ -148,59 +148,10 @@
   0%, 42%, 52%, 100% { transform: none; }
   45% { transform: translateY(5px) scale(.97); }
 }
-.game-tabu .tb-teams {
-  display: grid;
-  gap: 8px;
-}
-.game-tabu .tb-teams .btn-link { justify-self: center; }
-.game-tabu .tb-team-list {
-  display: grid;
-  gap: 6px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.game-tabu .tb-team-list li {
-  display: grid;
-  gap: 1px;
-  padding: 8px 12px;
-  border-left: 4px solid var(--team);
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  font-size: 14px;
-}
-.game-tabu .tb-team-list li.is-target {
-  outline: 2px dashed var(--team);
-  outline-offset: 1px;
-  cursor: pointer;
-}
-.game-tabu .tb-members {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 5px;
-}
-.game-tabu .tb-member {
-  appearance: none;
-  max-width: 100%;
-  min-height: 34px;
-  padding: 5px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform .15s ease, background .15s ease;
-}
-.game-tabu .tb-member[aria-pressed="true"] {
-  border-color: var(--team);
-  background: var(--team);
-  color: #ffffff;
-  transform: scale(1.06);
+.game-tabu .tb-divider {
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px dashed var(--line);
 }
 @keyframes tb-rise {
   from { opacity: 0; transform: translateY(12px); }
