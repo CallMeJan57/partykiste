@@ -32,17 +32,60 @@ export const COIN_ICON = `
     <path d="M10.6 9.6 12.4 8.4v7.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 
-// Beide Seiten der Münze: geprägter Rand mit Schrift, in der Mitte Krone oder große Eins
+// Lorbeerzweig links vom Mittelpunkt (die rechte Seite ist gespiegelt): spitze Blätter abwechselnd
+// außen und innen an einem Kreisbogen, das letzte Blatt bildet die Spitze
+const LAUREL_RADIUS = 38;
+const LAUREL_FROM = 125;  // Grad, 90 = unten, 180 = links
+const LAUREL_TO = 232;
+const LEAF = 'M-6.5 0Q0-4 6.5 0Q0 4-6.5 0Z';
+
+function laurelPoint(angle, radius = LAUREL_RADIUS) {
+  const rad = (angle * Math.PI) / 180;
+  return [(radius * Math.cos(rad)).toFixed(1), (radius * Math.sin(rad)).toFixed(1)];
+}
+
+const LAUREL_LEAVES = Array.from({ length: 8 }, (_, index) => {
+  const angle = LAUREL_FROM + 8 + index * 12.5;
+  const outside = index % 2 === 0;
+  const [x, y] = laurelPoint(angle, LAUREL_RADIUS + (outside ? 4 : -4));
+  // Blattspitze zeigt den Zweig entlang nach oben und leicht vom Stiel weg
+  const tilt = angle + 90 + (outside ? -32 : 32);
+  return `<path d="${LEAF}" transform="translate(${x} ${y}) rotate(${tilt.toFixed(1)})"/>`;
+}).join('');
+const [stemX1, stemY1] = laurelPoint(LAUREL_FROM);
+const [stemX2, stemY2] = laurelPoint(LAUREL_TO);
+const [tipX, tipY] = laurelPoint(LAUREL_TO + 4);
+const LAUREL = `
+  <path class="coin-laurel" d="M${stemX1} ${stemY1}A${LAUREL_RADIUS} ${LAUREL_RADIUS} 0 0 1 ${stemX2} ${stemY2}"/>
+  <g class="coin-emboss">
+    ${LAUREL_LEAVES}
+    <path d="${LEAF}" transform="translate(${tipX} ${tipY}) rotate(${LAUREL_TO + 4 + 90})"/>
+  </g>`;
+
+// Motive, jeweils um den Nullpunkt gezeichnet und dann genau in die Münzmitte gesetzt
+const EMBLEMS = {
+  kopf: `
+    <g transform="translate(80 82)">
+      <path class="coin-emboss" d="M-24 16H24L29-14 13 0 0-22-13 0-29-14Z"/>
+      <circle class="coin-emboss" cx="-29" cy="-19" r="4.5"/>
+      <circle class="coin-emboss" cx="0" cy="-27" r="4.5"/>
+      <circle class="coin-emboss" cx="29" cy="-19" r="4.5"/>
+      <rect class="coin-emboss" x="-26" y="19" width="52" height="8" rx="3"/>
+      <circle class="coin-gem" cx="-13" cy="23" r="2"/><circle class="coin-gem" cx="0" cy="23" r="2"/><circle class="coin-gem" cx="13" cy="23" r="2"/>
+    </g>`,
+  zahl: `
+    <g transform="translate(80 81)">
+      ${LAUREL}
+      <g transform="scale(-1 1)">${LAUREL}</g>
+      <path class="coin-emboss" d="M-3-28H7V20H15V28H-13V20H-3V-14L-12-8-15-14Z"/>
+    </g>`,
+};
+
+// Beide Seiten der Münze: Perlrand, Schriftband zwischen zwei Linien, in der Mitte Krone oder große Eins
 function face(kind) {
   const id = `coin-${kind}`;
-  const ring = kind === 'kopf' ? '★ KOPF ★ PARTYKISTE ★ KOPF ★ PARTYKISTE' : '★ ZAHL ★ PARTYKISTE ★ ZAHL ★ PARTYKISTE';
-  const emblem = kind === 'kopf'
-    ? `<path class="coin-emboss" d="M58 116h44l6-38-17 15-11-27-11 27-17-15Z"/>
-       <circle class="coin-emboss" cx="52" cy="76" r="5"/><circle class="coin-emboss" cx="80" cy="62" r="5"/><circle class="coin-emboss" cx="108" cy="76" r="5"/>
-       <rect class="coin-emboss" x="56" y="120" width="48" height="8" rx="3"/>`
-    : `<text class="coin-emboss coin-number" x="80" y="88" text-anchor="middle" dominant-baseline="central">1</text>
-       <path class="coin-laurel" d="M44 104c-8-14-8-32 2-46M116 104c8-14 8-32-2-46"/>
-       <path class="coin-emboss" d="M40 92c-6-2-8-7-7-11 5 1 8 5 7 11ZM38 78c-5-3-6-8-4-12 4 2 6 6 4 12ZM40 64c-3-4-3-9 0-12 3 3 3 8 0 12ZM120 92c6-2 8-7 7-11-5 1-8 5-7 11ZM122 78c5-3 6-8 4-12-4 2-6 6-4 12ZM120 64c3-4 3-9 0-12-3 3-3 8 0 12Z"/>`;
+  const word = FACES[kind].label.toUpperCase();
+  const ring = `★ ${word} ★ PARTYKISTE ★ ${word} ★ PARTYKISTE `;
   return `
     <svg class="coin-face coin-face-${kind}" viewBox="0 0 160 160" aria-hidden="true">
       <defs>
@@ -51,15 +94,16 @@ function face(kind) {
           <stop offset=".45" stop-color="#f2c14e"/>
           <stop offset="1" stop-color="#b07b16"/>
         </radialGradient>
-        <path id="${id}-arc" d="M80 80m-58 0a58 58 0 1 1 116 0a58 58 0 1 1-116 0"/>
+        <path id="${id}-arc" d="M24 80a56 56 0 1 1 112 0a56 56 0 1 1-112 0"/>
       </defs>
       <circle cx="80" cy="80" r="78" fill="#9a6a10"/>
-      <circle cx="80" cy="80" r="74" fill="url(#${id}-gold)"/>
-      <circle cx="80" cy="80" r="67" fill="none" stroke="#a87414" stroke-width="2" stroke-dasharray="3 4"/>
-      <circle cx="80" cy="80" r="47" fill="none" stroke="#c8941f" stroke-width="2.5"/>
-      <text class="coin-ring"><textPath href="#${id}-arc" textLength="356">${ring}</textPath></text>
-      ${emblem}
-      <path class="coin-gloss" d="M30 60a54 54 0 0 1 40-36"/>
+      <circle cx="80" cy="80" r="75" fill="url(#${id}-gold)"/>
+      <circle class="coin-beads" cx="80" cy="80" r="72"/>
+      <circle class="coin-line" cx="80" cy="80" r="68"/>
+      <circle class="coin-line" cx="80" cy="80" r="49"/>
+      <text class="coin-ring"><textPath href="#${id}-arc" textLength="346" lengthAdjust="spacing">${ring}</textPath></text>
+      ${EMBLEMS[kind]}
+      <path class="coin-gloss" d="M8.6 54A76 76 0 0 1 54 8.6"/>
     </svg>`;
 }
 
