@@ -405,3 +405,9 @@
   from { opacity: 0; transform: scale(.5); }
 }
 
+
+/* Teammodus: Knöpfe in Teamfarbe */
+.game-emoji-raten .em-award.is-team {
+  border-color: var(--team);
+  background: color-mix(in srgb, var(--team) 18%, var(--surface));
+}

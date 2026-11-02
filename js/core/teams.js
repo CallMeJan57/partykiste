@@ -69,12 +69,30 @@ export function getTeams(players = getPlayers()) {
     }
     settings.assignment = assignment;
   }
-  return TEAM_STYLES.slice(0, count).map((style, index) => ({
-    ...style,
-    defaultName: style.name,
-    name: settings.names[index]?.trim() || style.name,
-    members: enough ? players.filter((name) => settings.assignment[name] === index) : [],
-  }));
+  const used = new Set();
+  return TEAM_STYLES.slice(0, count).map((style, index) => {
+    // Gleiche eigene Namen bekommen eine Nummer, damit Spiele die Teams auseinanderhalten können
+    const base = settings.names[index]?.trim() || style.name;
+    let name = base;
+    for (let number = 2; used.has(name.toLowerCase()); number += 1) name = `${base} ${number}`;
+    used.add(name.toLowerCase());
+    return {
+      ...style,
+      defaultName: style.name,
+      name,
+      members: enough ? players.filter((player) => settings.assignment[player] === index) : [],
+    };
+  });
+}
+
+/** Wer aus dem Team dran ist: reihum, in jeder Runde die nächste Person. null, wenn das Team ohne Namen spielt. */
+export function teamMember(team, round) {
+  return team.members.length ? team.members[round % team.members.length] : null;
+}
+
+/** Teamname mit Symbol, z. B. für Ranglisten. */
+export function teamLabel(team) {
+  return `${team.emoji} ${team.name}`;
 }
 
 /** Alle Namen neu und gleichmäßig zufällig verteilen. */

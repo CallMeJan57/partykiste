@@ -1,6 +1,7 @@
 import { $, esc } from '../../core/dom.js';
 import { shuffle } from '../../core/random.js';
-import { bindPlayerEditor, bindSegmented, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, splitLetters, toggleList } from '../../core/ui.js';
+import { getTeams, teamLabel } from '../../core/teams.js';
+import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, splitLetters, teamModeControl, toggleList } from '../../core/ui.js';
 import categories from './puzzles.js';
 
 const TIMES = ['aus', '30', '60', '90'];      // Sekunden pro Rätsel
@@ -51,6 +52,8 @@ function mount(ctx) {
   let players = ctx.players.get();
 
   let named = false;
+  let mode = storage.get('mode') === 'teams' ? 'teams' : 'solo';
+  let sides = [];       // im Teammodus: Teams aus core/teams.js
   let scores = new Map();
   let deck = [];
   let played = 0;
@@ -125,7 +128,7 @@ function mount(ctx) {
           icon: '👥',
           title: 'Mitspieler',
           optional: true,
-          body: playerEditor({ name: 'players' }),
+          body: `${playerEditor({ name: 'players' })}${teamModeControl({ value: mode })}`,
           note: '<span class="em-players-hint"></span>',
         },
       ],
@@ -135,6 +138,11 @@ function mount(ctx) {
     const startButton = $('[data-action="start"]', root);
     const playersHint = $('.em-players-hint', root);
     const update = () => {
+      if (mode === 'teams') {
+        startButton.textContent = "Los geht's";
+        playersHint.textContent = `Alle Teams raten gleichzeitig. Wer zuerst richtig liegt, holt bis zu ${MAX_POINTS} Punkte fürs Team – jeder Tipp kostet einen.`;
+        return;
+      }
       const withNames = players.length >= NAMED_MIN_PLAYERS;
       startButton.textContent = withNames ? "Los geht's" : 'Ohne Namen starten';
       playersHint.textContent = withNames
@@ -154,10 +162,18 @@ function mount(ctx) {
       rounds = value;
       storage.set('rounds', value);
     });
+    const teams = bindTeamMode(root, {
+      onChange: (value) => {
+        mode = value;
+        storage.set('mode', value);
+        update();
+      },
+    });
     players = bindPlayerEditor(root, 'players', {
       min: 0,
       onChange: (list) => {
         players = list;
+        teams.refresh(list);
         update();
       },
     });
@@ -165,9 +181,20 @@ function mount(ctx) {
     update();
   }
 
+  function teamOf(name) {
+    return sides.find((team) => team.name === name);
+  }
+
+  // Name für die Rangliste – im Teammodus mit Symbol
+  function label(name) {
+    const team = teamOf(name);
+    return team ? teamLabel(team) : name;
+  }
+
   function startGame() {
-    named = players.length >= NAMED_MIN_PLAYERS;
-    scores = new Map(players.map((name) => [name, 0]));
+    sides = mode === 'teams' ? getTeams(players) : [];
+    named = sides.length > 0 || players.length >= NAMED_MIN_PLAYERS;
+    scores = new Map((sides.length ? sides.map((team) => team.name) : players).map((name) => [name, 0]));
     deck = [];
     played = 0;
     solved = 0;
@@ -359,7 +386,9 @@ function mount(ctx) {
     actions.innerHTML = success && named
       ? `<p class="em-award-title">Wer hat's erraten? <b>+${points}</b></p>
          <div class="em-award-buttons">
-           ${players.map((name, index) => `<button class="em-award" type="button" data-player="${esc(name)}" style="--i: ${index}">${esc(name)}</button>`).join('')}
+           ${sides.length
+             ? sides.map((team, index) => `<button class="em-award is-team" type="button" data-player="${esc(team.name)}" style="--i: ${index}; --team: ${team.color}">${esc(teamLabel(team))}</button>`).join('')
+             : players.map((name, index) => `<button class="em-award" type="button" data-player="${esc(name)}" style="--i: ${index}">${esc(name)}</button>`).join('')}
          </div>
          <button class="btn-link" type="button" data-action="next">Ohne Punkte weiter</button>`
       : `<p class="em-award-title">${success ? 'Stark!' : timeout ? 'Zeit um!' : 'Aufgelöst'}</p>
@@ -401,8 +430,8 @@ function mount(ctx) {
       const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1]);
       const best = ranked[0][1];
       const winners = ranked.filter(([, points]) => points === best && best > 0).map(([name]) => name);
-      title = winners.length ? `${winners.map(esc).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!` : 'Unentschieden';
-      ranking = rankingList(ranked.map(([name, value]) => ({ name, value })));
+      title = winners.length ? `${winners.map((winner) => esc(label(winner))).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!` : 'Unentschieden';
+      ranking = rankingList(ranked.map(([name, value]) => ({ name: label(name), value, note: teamOf(name)?.members.join(', ') })));
     }
     if (solved) {
       sound.solved();

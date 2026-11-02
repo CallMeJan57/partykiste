@@ -1,6 +1,7 @@
 import { $, esc } from '../../core/dom.js';
 import { shuffle } from '../../core/random.js';
-import { bindPlayerEditor, bindSegmented, bindToggleList, playerEditor, rankingList, segmented, setupScreen, splitLetters, toggleList } from '../../core/ui.js';
+import { getTeams, teamLabel, teamMember } from '../../core/teams.js';
+import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupScreen, splitLetters, teamModeControl, toggleList } from '../../core/ui.js';
 import categories from './terms.js';
 
 const TIMES = ['30', '60', '90']; // Sekunden, als Text für den Segment-Schalter
@@ -92,9 +93,11 @@ function mount(ctx) {
   let time = TIMES.includes(storage.get('time')) ? storage.get('time') : DEFAULT_TIME;
   let players = ctx.players.get();
   let named = false;   // true = mit Namen, wer dran ist, und Punkten
+  let mode = storage.get('mode') === 'teams' ? 'teams' : 'solo';
+  let sides = [];      // im Teammodus: Teams aus core/teams.js, reihum dran
   let scores = new Map();
   let deck = [];
-  let turn = 0;        // wer gerade darstellt (Index in players)
+  let turn = 0;        // wer gerade darstellt (Index in players bzw. sides)
   let played = 0;      // gespielte Begriffe
   let guessed = 0;     // davon erraten
   let current = null;  // { key, term, hint }
@@ -109,8 +112,28 @@ function mount(ctx) {
     return valid.length ? valid : DEFAULT_CATEGORIES;
   }
 
+  function teamMode() {
+    return mode === 'teams';
+  }
+
   function performer() {
+    if (teamMode()) return teamMember(sides[turn], Math.floor(played / sides.length));
     return named ? players[turn] : null;
+  }
+
+  // Wer als Nächstes dran ist – Name bzw. Team
+  function nextUp() {
+    return teamMode() ? sides[(turn + 1) % sides.length].name : players[(turn + 1) % players.length];
+  }
+
+  function teamOf(name) {
+    return sides.find((team) => team.name === name);
+  }
+
+  // Name für Punktestand und Rangliste – im Teammodus mit Symbol
+  function label(name) {
+    const team = teamOf(name);
+    return team ? teamLabel(team) : name;
   }
 
   // ---------- Einstellungen ----------
@@ -147,7 +170,7 @@ function mount(ctx) {
           icon: '👥',
           title: 'Mitspieler',
           optional: true,
-          body: playerEditor({ name: 'players' }),
+          body: `${playerEditor({ name: 'players' })}${teamModeControl({ value: mode })}`,
           note: '<span class="pm-players-hint"></span>',
         },
       ],
@@ -157,6 +180,11 @@ function mount(ctx) {
     const startButton = $('[data-action="start"]', root);
     const playersHint = $('.pm-players-hint', root);
     const updateStart = () => {
+      if (teamMode()) {
+        startButton.textContent = "Los geht's";
+        playersHint.textContent = 'Die Teams sind reihum dran: Eine Person stellt dar, das eigene Team rät. Erraten = 1 Punkt fürs Team.';
+        return;
+      }
       const withNames = players.length >= NAMED_MIN_PLAYERS;
       startButton.textContent = withNames ? "Los geht's" : 'Ohne Namen starten';
       playersHint.textContent = withNames
@@ -172,10 +200,18 @@ function mount(ctx) {
       time = value;
       storage.set('time', value);
     });
+    const teams = bindTeamMode(root, {
+      onChange: (value) => {
+        mode = value;
+        storage.set('mode', value);
+        updateStart();
+      },
+    });
     players = bindPlayerEditor(root, 'players', {
       min: 0,
       onChange: (list) => {
         players = list;
+        teams.refresh(list);
         updateStart();
       },
     });
@@ -185,8 +221,9 @@ function mount(ctx) {
 
   function startGame() {
     busy = false;
-    named = players.length >= NAMED_MIN_PLAYERS;
-    scores = new Map(players.map((name) => [name, 0]));
+    sides = teamMode() ? getTeams(players) : [];
+    named = teamMode() || players.length >= NAMED_MIN_PLAYERS;
+    scores = new Map((teamMode() ? sides.map((team) => team.name) : players).map((name) => [name, 0]));
     deck = [];
     turn = 0;
     played = 0;
@@ -205,14 +242,19 @@ function mount(ctx) {
 
   function scoreboard() {
     if (!named || !played) return '';
-    const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1]);
+    const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1]).map(([name, points]) => [label(name), points]);
     return `<ul class="chips pm-scores">${ranked.map(([name, points]) => `<li class="chip">${esc(name)} · ${points}</li>`).join('')}</ul>`;
   }
 
   function showTurn() {
     endCountdown();
     const name = performer();
-    const head = name
+    const team = teamMode() ? sides[turn] : null;
+    const head = team
+      ? `<p class="eyebrow">Begriff ${played + 1} · ${esc(teamLabel(team))}</p>
+         <h1 class="pm-name">${letters(name ?? team.name)}</h1>
+         <p class="pm-lede">${name ? `${esc(name)} stellt dar – ${esc(team.name)} rät. Nur ${esc(name)} darf hinschauen.` : `Eine Person aus ${esc(team.name)} stellt dar, der Rest vom Team rät.`}</p>`
+      : name
       ? `<p class="eyebrow">Begriff ${played + 1} · stellt dar</p>
          <h1 class="pm-name">${letters(name)}</h1>
          <p class="pm-lede">Gib ${esc(name)} das Handy – nur ${esc(name)} darf hinschauen.</p>`
@@ -465,7 +507,9 @@ function mount(ctx) {
     endCountdown();
     played += 1;
     const name = performer();
-    const others = named ? players.filter((player) => player !== name) : [];
+    const others = named && !teamMode() ? players.filter((player) => player !== name) : [];
+    const team = teamMode() ? sides[turn] : null;
+    if (team && outcome === 'guessed') scores.set(team.name, scores.get(team.name) + 1);
 
     if (outcome === 'guessed') {
       guessed += 1;
@@ -482,7 +526,10 @@ function mount(ctx) {
     }
 
     const title = { guessed: 'Erraten!', timeout: 'Zeit um!', 'given-up': 'Aufgegeben' }[outcome];
-    const award = outcome === 'guessed' && named
+    const award = team
+      ? `${outcome === 'guessed' ? `<p class="pm-team-point" style="--team: ${team.color}">+1 für ${esc(teamLabel(team))}</p>` : ''}
+         <button class="btn btn-primary" type="button" data-action="next">Weiter – ${esc(nextUp())} ist dran</button>`
+      : outcome === 'guessed' && named
       ? `<div class="pm-award">
            <p class="eyebrow">Wer hat's erraten?</p>
            <div class="pm-award-buttons">
@@ -490,7 +537,7 @@ function mount(ctx) {
            </div>
            <button class="btn-link" type="button" data-action="next">Ohne Punkte weiter</button>
          </div>`
-      : `<button class="btn btn-primary" type="button" data-action="next">${named ? `Weiter – ${esc(players[(turn + 1) % players.length])} ist dran` : 'Nächster Begriff'}</button>`;
+      : `<button class="btn btn-primary" type="button" data-action="next">${named ? `Weiter – ${esc(nextUp())} ist dran` : 'Nächster Begriff'}</button>`;
 
     root.innerHTML = `
       <section class="screen pm-result pm-is-${outcome}">
@@ -556,7 +603,7 @@ function mount(ctx) {
   }
 
   function nextTurn() {
-    if (named) turn = (turn + 1) % players.length;
+    if (named) turn = (turn + 1) % (teamMode() ? sides.length : players.length);
     showTurn();
   }
 
@@ -576,7 +623,8 @@ function mount(ctx) {
       const best = ranked[0][1];
       const winners = ranked.filter(([, points]) => points === best && best > 0).map(([player]) => player);
       title = winners.length ? `${winners.map(esc).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!` : 'Unentschieden';
-      ranking = rankingList(ranked.map(([name, value]) => ({ name, value })));
+      if (teamMode() && winners.length) title = `${winners.map((winner) => esc(teamLabel(teamOf(winner)))).join(' & ')} ${winners.length > 1 ? 'gewinnen' : 'gewinnt'}!`;
+      ranking = rankingList(ranked.map(([name, value]) => ({ name: label(name), value, note: teamOf(name)?.members.join(', ') })));
     }
     if (guessed) {
       sound.applause();

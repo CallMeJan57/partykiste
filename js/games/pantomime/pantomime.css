@@ -655,3 +655,19 @@
   to { opacity: 0; transform: translate(-50%, -38px) scale(1); }
 }
 
+
+/* Teammodus: Punkt fürs Team */
+.game-pantomime .pm-team-point {
+  align-self: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--team) 22%, transparent);
+  box-shadow: 0 0 0 2px var(--team);
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: .04em;
+  animation: pm-team-point .55s cubic-bezier(.3, 1.6, .5, 1) .25s backwards;
+}
+@keyframes pm-team-point {
+  from { opacity: 0; transform: scale(.4) rotate(-8deg); }
+}

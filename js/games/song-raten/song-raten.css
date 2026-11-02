@@ -484,3 +484,9 @@
 @media (prefers-reduced-motion: reduce) {
   .game-song-raten .sr-hero-note { display: none; }
 }
+
+/* Teammodus: Knöpfe in Teamfarbe */
+.game-song-raten .sr-award-btn.is-team {
+  border-color: var(--team);
+  background: color-mix(in srgb, var(--team) 18%, var(--surface));
+}

@@ -1,6 +1,7 @@
 import { $, esc } from '../../core/dom.js';
 import { between } from '../../core/random.js';
-import { bindPlayerEditor, bindSegmented, playerEditor, rankingList, segmented, setupRow, setupScreen, splitLetters } from '../../core/ui.js';
+import { getTeams, teamLabel, teamMember } from '../../core/teams.js';
+import { bindPlayerEditor, bindSegmented, bindTeamMode, playerEditor, rankingList, segmented, setupRow, setupScreen, splitLetters, teamModeControl } from '../../core/ui.js';
 import { css, hsvToRgb, matchPercent, rgbToHsv, textOn } from './color.js';
 
 const MEMORY_TIMES = [
@@ -89,6 +90,8 @@ function mount(ctx) {
   let players = ctx.players.get();
 
   let named = false;
+  let playAs = storage.get('playAs') === 'teams' ? 'teams' : 'solo';
+  let sides = [];        // im Teammodus: Teams aus core/teams.js; gewertet wird der Teamdurchschnitt
   let turn = 0;          // laufende Nummer über alle Züge
   let results = [];      // { name, percent, target, guess }
   let target = null;     // Vorgabe als { r, g, b }
@@ -103,16 +106,36 @@ function mount(ctx) {
     return rounds === 'endlos';
   }
 
+  // Wer reihum dran ist: Namen oder Teams
+  function lineup() {
+    return sides.length ? sides.map((team) => team.name) : players;
+  }
+
   function totalTurns() {
-    return endless() ? Infinity : Number(rounds) * (named ? players.length : 1);
+    return endless() ? Infinity : Number(rounds) * (named ? lineup().length : 1);
   }
 
   function currentName() {
-    return named ? players[turn % players.length] : null;
+    return named ? lineup()[turn % lineup().length] : null;
+  }
+
+  function currentTeam() {
+    return sides.length ? sides[turn % sides.length] : null;
+  }
+
+  // Anzeige, wer dran ist: Name, im Teammodus die Person aus dem Team (oder das Team selbst ohne Namen)
+  function whoLabel() {
+    const team = currentTeam();
+    if (!team) return currentName();
+    return teamMember(team, Math.floor(turn / sides.length)) ?? team.name;
+  }
+
+  function teamOf(name) {
+    return sides.find((team) => team.name === name);
   }
 
   function roundLabel() {
-    const round = Math.floor(turn / (named ? players.length : 1)) + 1;
+    const round = Math.floor(turn / (named ? lineup().length : 1)) + 1;
     return endless() ? `Runde ${round}` : `Runde ${round} von ${rounds}`;
   }
 
@@ -150,8 +173,8 @@ function mount(ctx) {
           icon: '👥',
           title: 'Mitspieler',
           optional: true,
-          body: playerEditor({ name: 'players' }),
-          note: 'Mit Namen wird reihum gespielt, am Ende gibt es eine Rangliste.',
+          body: `${playerEditor({ name: 'players' })}${teamModeControl({ value: playAs })}`,
+          note: 'Mit Namen wird reihum gespielt. In Teams wechseln sich die Teams ab, gewertet wird der Teamdurchschnitt.',
         },
       ],
       start: '<button class="btn btn-primary" type="button" data-action="start">Los geht\'s</button>',
@@ -169,17 +192,25 @@ function mount(ctx) {
       rounds = value;
       storage.set('rounds', value);
     });
+    const teams = bindTeamMode(root, {
+      onChange: (value) => {
+        playAs = value;
+        storage.set('playAs', value);
+      },
+    });
     players = bindPlayerEditor(root, 'players', {
       min: 0,
       onChange: (list) => {
         players = list;
+        teams.refresh(list);
       },
     });
     $('[data-action="start"]', root).addEventListener('click', startGame);
   }
 
   function startGame() {
-    named = players.length >= NAMED_MIN_PLAYERS;
+    sides = playAs === 'teams' ? getTeams(players) : [];
+    named = sides.length > 0 || players.length >= NAMED_MIN_PLAYERS;
     turn = 0;
     results = [];
     lastHue = null;
@@ -189,10 +220,11 @@ function mount(ctx) {
   // ---------- Bereit machen ----------
 
   function showTurn() {
-    const name = currentName();
+    const name = whoLabel();
+    const team = currentTeam();
     root.innerHTML = `
       <section class="screen cm-turn">
-        <p class="eyebrow">${roundLabel()}</p>
+        <p class="eyebrow">${roundLabel()}${team ? ` · ${esc(teamLabel(team))}` : ''}</p>
         <h1 class="cm-who">${name ? `${esc(name)} ist dran` : 'Bereit?'}</h1>
         <button class="cm-reveal-btn" type="button" data-action="show">
           <span class="cm-orbit" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -300,7 +332,7 @@ function mount(ctx) {
 
   function showMix() {
     values = startValues();
-    const name = currentName();
+    const name = whoLabel();
     root.innerHTML = `
       <section class="screen cm-mix">
         <div class="cm-mix-head">
@@ -460,16 +492,16 @@ function mount(ctx) {
   function showResult() {
     const guess = guessRgb();
     const percent = matchPercent(target, guess);
-    results.push({ name: currentName(), percent, target, guess });
+    results.push({ name: currentName(), who: whoLabel(), percent, target, guess });
     const last = turn + 1 >= totalTurns();
-    const nextName = named && !last ? players[(turn + 1) % players.length] : null;
+    const nextName = named && !last ? lineup()[(turn + 1) % lineup().length] : null;
     const verdict = VERDICTS.find((entry) => percent >= entry.min).text;
     sound.lock();
     vibrate(15);
 
     root.innerHTML = `
       <section class="screen cm-result" style="--target: ${css(target)}; --guess: ${css(guess)}">
-        <p class="eyebrow">${roundLabel()}${results.at(-1).name ? ` · ${esc(results.at(-1).name)}` : ''}${endless() ? ` · Ø ${average(results)} %` : ''}</p>
+        <p class="eyebrow">${roundLabel()}${results.at(-1).who ? ` · ${esc(results.at(-1).who)}` : ''}${endless() ? ` · Ø ${average(results)} %` : ''}</p>
         <div class="cm-compare" role="img" aria-label="Vorgabe und deine Farbe im Vergleich">
           <svg class="cm-gauge" viewBox="0 0 120 120" aria-hidden="true">
             <circle class="cm-gauge-back" cx="60" cy="60" r="56"/>
@@ -571,7 +603,7 @@ function mount(ctx) {
     if (record) storage.set(bestKey, overall);
 
     const ranked = named
-      ? players
+      ? lineup()
         .filter((name) => results.some((entry) => entry.name === name)) // bei Abbruch mitten in der Runde
         .map((name) => {
           const own = results.filter((entry) => entry.name === name);
@@ -581,7 +613,7 @@ function mount(ctx) {
       : [];
     const top = ranked.filter((entry) => entry.score === ranked[0].score).map((entry) => entry.name);
     const title = named
-      ? `${top.map(esc).join(' & ')} ${top.length > 1 ? 'gewinnen' : 'gewinnt'}!`
+      ? `${top.map((name) => esc(teamOf(name) ? teamLabel(teamOf(name)) : name)).join(' & ')} ${top.length > 1 ? 'gewinnen' : 'gewinnt'}!`
       : VERDICTS.find((entry) => overall >= entry.min).text;
     const gallery = [...results].sort((a, b) => b.percent - a.percent).slice(0, GALLERY_MAX);
 
@@ -592,7 +624,7 @@ function mount(ctx) {
         <h1 class="cm-end-title">${title}</h1>
         ${record ? '<p class="cm-record">Neuer Rekord</p>' : ''}
         ${!named && !endless() && !record && storage.get(bestKey, 0) ? `<p class="cm-hint">Dein Rekord bei dieser Merkzeit: ${storage.get(bestKey, 0)} %</p>` : ''}
-        ${named ? rankingList(ranked.map((entry) => ({ name: entry.name, value: `${entry.score} %`, note: `beste Runde ${entry.best} %` }))) : ''}
+        ${named ? rankingList(ranked.map((entry) => ({ name: teamOf(entry.name) ? teamLabel(teamOf(entry.name)) : entry.name, value: `${entry.score} %`, note: teamOf(entry.name) ? `${teamOf(entry.name).members.join(', ') || 'Team'} · beste ${entry.best} %` : `beste Runde ${entry.best} %` }))) : ''}
         <div class="cm-gallery-box">
           <p class="eyebrow">${gallery.length < results.length ? 'Die besten Treffer' : named ? 'Alle Treffer' : 'Deine Treffer'}</p>
           <div class="cm-gallery">

@@ -389,6 +389,35 @@ export function bindTeamEditor(root, name, { open = false, onChange = () => {} }
   };
 }
 
+/**
+ * Schalter „Einzeln / In Teams“ für die Mitspieler-Karte der Einstellungen; bei Teams klappt darunter
+ * der Team-Bereich auf (dieselben Teams wie auf der Startseite). Danach bindTeamMode() aufrufen.
+ */
+export function teamModeControl({ value }) {
+  return `
+    <div class="team-mode">
+      ${setupRow({
+        label: 'Spielen als',
+        control: segmented({ name: 'team-mode', label: 'Spielen als', options: [{ value: 'solo', label: '👤 Einzeln' }, { value: 'teams', label: '👥 In Teams' }], value }),
+      })}
+      <div class="team-mode-teams"${value === 'teams' ? '' : ' hidden'}>${teamEditor({ name: 'game-teams' })}</div>
+    </div>`;
+}
+
+/** onChange bekommt 'solo' oder 'teams'. Gibt den Team-Bereich zurück: refresh(players) bei geänderter Spielerliste. */
+export function bindTeamMode(root, { onChange = () => {} } = {}) {
+  const box = root.querySelector('.team-mode-teams');
+  const editor = bindTeamEditor(root, 'game-teams', { open: true });
+  bindSegmented(root, 'team-mode', (mode) => {
+    box.hidden = mode !== 'teams';
+    if (!box.hidden && !reducedMotion()) {
+      box.animate([{ opacity: 0, transform: 'translateY(-10px) scale(.98)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2, .8, .3, 1.2)' });
+    }
+    onChange(mode);
+  });
+  return editor;
+}
+
 function initial(name) {
   return [...name.trim()][0]?.toUpperCase() ?? '?';
 }
