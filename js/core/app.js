@@ -4,6 +4,7 @@
 import { COIN_ICON, openCoin } from '../coin/coin.js';
 import { DICE_ICON, openDice } from '../dice/dice.js';
 import { renderHub } from '../hub/hub.js';
+import { trackEvent } from './analytics.js';
 import * as audio from './audio.js';
 import { createContext } from './context.js';
 import { $, esc } from './dom.js';
@@ -102,6 +103,7 @@ export function startApp({ name, games, sections = [], topbar, view }) {
 
       const cleanup = game.mount(ctx);
       if (typeof cleanup === 'function') ctx.onCleanup(cleanup);
+      trackEvent(`spiel/${game.id}`, game.title);
     } catch (error) {
       console.error(error);
       view.innerHTML = `
@@ -152,8 +154,14 @@ export function startApp({ name, games, sections = [], topbar, view }) {
     }
 
     $('[data-action="back"]', topbar)?.addEventListener('click', requestExit);
-    $('[data-action="dice"]', topbar)?.addEventListener('click', openDice);
-    $('[data-action="coin"]', topbar)?.addEventListener('click', openCoin);
+    $('[data-action="dice"]', topbar)?.addEventListener('click', () => {
+      openDice();
+      trackEvent('werkzeug/wuerfel', 'Würfelbecher');
+    });
+    $('[data-action="coin"]', topbar)?.addEventListener('click', () => {
+      openCoin();
+      trackEvent('werkzeug/muenze', 'Münzwurf');
+    });
     const muteButton = $('[data-action="mute"]', topbar);
     muteButton.addEventListener('click', () => {
       audio.setMuted(!audio.isMuted());

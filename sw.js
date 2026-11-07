@@ -44,6 +44,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
+  if (url.hostname.endsWith('goatcounter.com') || url.hostname === 'gc.zgo.at') return; // Besucherzähler nie zwischenspeichern
   if (url.origin === self.location.origin) {
     event.respondWith(networkFirst(request));
   } else if (request.destination === 'image' || request.destination === 'font' || url.hostname === 'fonts.googleapis.com') {
