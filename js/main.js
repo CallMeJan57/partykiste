@@ -1,3 +1,4 @@
+import { enableAnalytics } from './core/analytics.js';
 import { startApp } from './core/app.js';
 import { enableOffline } from './core/offline.js';
 import { games, sections } from './games/index.js';
@@ -11,3 +12,4 @@ startApp({
 });
 
 enableOffline(games);
+enableAnalytics();
