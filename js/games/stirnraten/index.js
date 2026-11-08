@@ -229,7 +229,12 @@ function mount(ctx) {
   }
 
   function draw() {
-    if (!deck.length) deck = shuffle(selected.flatMap((key) => categories[key].terms.map((term) => ({ term, key }))));
+    if (!deck.length) {
+      // Kommt ein Begriff in zwei gewählten Kategorien vor (z. B. „Schwimmen“), nur einmal ins Spiel nehmen
+      const seen = new Set();
+      deck = shuffle(selected.flatMap((key) => categories[key].terms.map((term) => ({ term, key })))
+        .filter(({ term }) => !seen.has(term.toLowerCase()) && seen.add(term.toLowerCase())));
+    }
     return deck.pop();
   }
 
