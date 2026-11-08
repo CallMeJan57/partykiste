@@ -1,0 +1,666 @@
+/* Alle Regeln beginnen mit .game-werwolf, damit sie nur in diesem Spiel gelten. */
+
+/* Das Spiel läuft immer dunkel (index.js setzt data-theme="dark"): Mondlicht, Nachtblau und Blut */
+.game-werwolf {
+  --accent: #7b8cff;
+  --accent-2: #c3cbff;
+  --on-accent: #0b0e22;
+  --moon: #f4f1d8;
+  --night-1: #070a1c;
+  --night-2: #1b2252;
+  --day-1: #f0a35b;
+  --day-2: #5b7fd6;
+  --blood: #e5484d;
+}
+
+/* Himmel hinter dem ganzen Spiel: Nacht mit Sternen, am Tag ein Morgenhimmel (Klasse is-day am Spiel) */
+.game-werwolf::before,
+.game-werwolf::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 1.6s ease;
+}
+.game-werwolf::before {
+  background:
+    radial-gradient(1.2px 1.2px at 12% 18%, #fff, transparent),
+    radial-gradient(1px 1px at 32% 8%, #fff, transparent),
+    radial-gradient(1.4px 1.4px at 58% 22%, #fff, transparent),
+    radial-gradient(1px 1px at 76% 12%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 88% 30%, #fff, transparent),
+    radial-gradient(1px 1px at 22% 40%, #fff, transparent),
+    radial-gradient(1px 1px at 66% 44%, #fff, transparent),
+    radial-gradient(ellipse 70% 40% at 50% 100%, rgba(80, 90, 200, .25), transparent),
+    linear-gradient(180deg, var(--night-1), var(--night-2));
+  animation: ww-twinkle 6s ease-in-out infinite alternate;
+}
+.game-werwolf::after {
+  opacity: 0;
+  background:
+    radial-gradient(circle at 50% 108%, rgba(255, 214, 120, .55), transparent 55%),
+    linear-gradient(180deg, #2b3f86 0%, #5b7fd6 40%, #f0a35b 85%, #ffd27a 100%);
+}
+.game-werwolf.is-day::after { opacity: .75; }
+@keyframes ww-twinkle {
+  to { filter: brightness(1.25); }
+}
+
+.game-werwolf .ww-center {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.game-werwolf .ww-lede {
+  color: color-mix(in srgb, var(--text) 82%, transparent);
+  line-height: 1.45;
+}
+.game-werwolf .ww-big {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 12vw, 58px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: .03em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.game-werwolf .ww-big .ww-word { display: inline-block; white-space: nowrap; }
+.game-werwolf .ww-big .ww-letter {
+  display: inline-block;
+  animation: ww-letter .5s cubic-bezier(.2, .9, .3, 1.4) backwards;
+  animation-delay: calc(var(--i) * 40ms + 200ms);
+}
+@keyframes ww-letter {
+  from { opacity: 0; transform: translateY(20px) rotate(8deg) scale(.6); }
+}
+
+/* ---------- Einstellungen ---------- */
+.game-werwolf .ww-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.game-werwolf .ww-hero {
+  width: min(100%, 300px);
+  aspect-ratio: 280 / 160;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .06);
+}
+.game-werwolf .ww-hero svg { display: block; width: 100%; height: 100%; }
+.game-werwolf .ww-stars { animation: ww-twinkle 2.6s ease-in-out infinite alternate; }
+.game-werwolf .ww-moon-glow { animation: ww-glow 4s ease-in-out infinite alternate; transform-origin: 190px 52px; }
+@keyframes ww-glow {
+  to { transform: scale(1.12); opacity: .7; }
+}
+.game-werwolf .ww-wolf {
+  transform-origin: 205px 104px;
+  animation: ww-howl 5s ease-in-out infinite;
+}
+@keyframes ww-howl {
+  0%, 60%, 100% { transform: none; }
+  70%, 88% { transform: rotate(-10deg) translateY(-2px); }
+}
+.game-werwolf .ww-eyes { animation: ww-blink 4.5s steps(1, end) infinite; }
+.game-werwolf .ww-eyes-2 { animation-delay: -2s; }
+@keyframes ww-blink {
+  0%, 40% { opacity: 1; }
+  42%, 46% { opacity: 0; }
+  48%, 100% { opacity: 1; }
+}
+.game-werwolf .ww-window { animation: ww-flicker 3s steps(1, end) infinite; }
+@keyframes ww-flicker {
+  0%, 70%, 100% { opacity: 1; }
+  72%, 78% { opacity: .5; }
+}
+.game-werwolf .ww-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: .06em;
+  line-height: 1;
+  color: var(--moon);
+  text-shadow: 0 0 24px rgba(160, 175, 255, .6);
+}
+.game-werwolf .ww-title .ww-letter {
+  display: inline-block;
+  animation: ww-letter .5s cubic-bezier(.2, .9, .3, 1.4) backwards;
+  animation-delay: calc(var(--i) * 60ms);
+}
+
+/* ---------- Rollen verteilen ---------- */
+.game-werwolf .ww-deal,
+.game-werwolf .ww-pass {
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+.game-werwolf .ww-pass { justify-content: center; }
+.game-werwolf .ww-pass-icon {
+  font-size: 64px;
+  animation: ww-pass 1.6s ease-in-out infinite;
+}
+@keyframes ww-pass {
+  50% { transform: translateX(14px) rotate(8deg); }
+}
+.game-werwolf .ww-who {
+  font-family: var(--font-display);
+  font-size: clamp(44px, 14vw, 66px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: .03em;
+  overflow-wrap: anywhere;
+  animation: ww-rise .45s cubic-bezier(.2, .8, .3, 1.2) backwards;
+}
+@keyframes ww-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+.game-werwolf .ww-flip {
+  appearance: none;
+  width: min(78vw, 290px);
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  background: none;
+  perspective: 1100px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.game-werwolf .ww-flip-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .7s cubic-bezier(.3, 1.3, .5, 1);
+}
+.game-werwolf .ww-flip.is-open .ww-flip-inner { transform: rotateY(180deg); }
+.game-werwolf .ww-flip-back,
+.game-werwolf .ww-flip-front {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 20px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.game-werwolf .ww-flip-back {
+  background:
+    radial-gradient(circle at 50% 40%, rgba(160, 175, 255, .25), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .04) 0 8px, transparent 8px 16px),
+    linear-gradient(160deg, #1d2560, #0c1030);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55), inset 0 0 0 2px rgba(195, 203, 255, .25), inset 0 0 0 9px #0c1030, inset 0 0 0 10px rgba(195, 203, 255, .2);
+  animation: ww-card-idle 3s ease-in-out infinite;
+}
+@keyframes ww-card-idle {
+  50% { box-shadow: 0 18px 46px rgba(90, 110, 255, .35), inset 0 0 0 2px rgba(195, 203, 255, .4), inset 0 0 0 9px #0c1030, inset 0 0 0 10px rgba(195, 203, 255, .3); }
+}
+.game-werwolf .ww-flip-moon {
+  font-size: 72px;
+  filter: drop-shadow(0 0 20px rgba(244, 241, 216, .6));
+}
+.game-werwolf .ww-flip-label {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+.game-werwolf .ww-flip-front {
+  transform: rotateY(180deg);
+  background:
+    radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--role) 45%, transparent), transparent 65%),
+    linear-gradient(160deg, #1c1830, #0d0b18);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55), inset 0 0 0 2px var(--role);
+  color: var(--text);
+}
+.game-werwolf .ww-card-emoji {
+  font-size: 84px;
+  line-height: 1;
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--role) 70%, transparent));
+}
+.game-werwolf .ww-flip.is-open .ww-card-emoji { animation: ww-emoji-pop .6s cubic-bezier(.2, .9, .3, 1.5) .3s backwards; }
+@keyframes ww-emoji-pop {
+  from { transform: scale(.3) rotate(-20deg); opacity: 0; }
+}
+.game-werwolf .ww-card-name {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: .05em;
+  line-height: 1;
+  color: var(--role);
+}
+.game-werwolf .ww-card-text {
+  font-size: 15px;
+  line-height: 1.4;
+}
+.game-werwolf .ww-card-goal {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ---------- Nacht ---------- */
+.game-werwolf .ww-night { gap: 16px; }
+.game-werwolf .ww-moon {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 10px auto;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #fffbe6, var(--moon) 55%, #d8d3a8);
+  box-shadow: 0 0 50px rgba(244, 241, 216, .55), 0 0 120px rgba(160, 175, 255, .35);
+  animation: ww-moon-in 1.2s cubic-bezier(.2, .8, .3, 1) backwards, ww-moon-float 6s ease-in-out 1.2s infinite alternate;
+}
+.game-werwolf .ww-moon::before,
+.game-werwolf .ww-moon::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(180, 172, 120, .35);
+}
+.game-werwolf .ww-moon::before { width: 22px; height: 22px; left: 26px; top: 30px; }
+.game-werwolf .ww-moon::after { width: 30px; height: 30px; right: 22px; bottom: 24px; }
+@keyframes ww-moon-in {
+  from { transform: translateY(60px) scale(.6); opacity: 0; }
+}
+@keyframes ww-moon-float {
+  to { transform: translateY(-8px); }
+}
+.game-werwolf .ww-asleep { min-height: 60vh; }
+.game-werwolf .ww-zzz {
+  font-family: var(--font-display);
+  font-size: 34px;
+  color: var(--accent-2);
+}
+.game-werwolf .ww-zzz span {
+  display: inline-block;
+  animation: ww-zzz 2.4s ease-in-out infinite;
+}
+.game-werwolf .ww-zzz span:nth-child(2) { animation-delay: .4s; font-size: .8em; }
+.game-werwolf .ww-zzz span:nth-child(3) { animation-delay: .8s; font-size: .6em; }
+@keyframes ww-zzz {
+  0%, 100% { opacity: 0; transform: translate(0, 10px); }
+  40% { opacity: 1; }
+  80% { opacity: 0; transform: translate(14px, -18px); }
+}
+
+/* Eine Rolle ist wach */
+.game-werwolf .ww-role-turn { gap: 16px; }
+.game-werwolf .ww-turn-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+.game-werwolf .ww-turn-emoji {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--role) 40%, transparent), transparent 70%);
+  font-size: 58px;
+  animation: ww-wake .7s cubic-bezier(.2, .9, .3, 1.4) backwards, ww-breathe 3s ease-in-out .7s infinite;
+}
+@keyframes ww-wake {
+  from { transform: scale(.2); opacity: 0; filter: blur(8px); }
+}
+@keyframes ww-breathe {
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 16px var(--role)); }
+}
+.game-werwolf .ww-turn-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 11vw, 50px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: .04em;
+  color: var(--role);
+}
+.game-werwolf .ww-content {
+  display: grid;
+  gap: 12px;
+}
+
+/* Auswahl von Personen */
+.game-werwolf .ww-pick {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.game-werwolf .ww-pick-btn {
+  appearance: none;
+  min-height: 52px;
+  padding: 10px 8px;
+  border: 1.5px solid color-mix(in srgb, var(--role, var(--accent)) 45%, var(--line));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  font: 700 16px var(--font-body);
+  color: var(--text);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .15s ease, background .15s ease;
+  animation: ww-rise .35s ease backwards;
+  animation-delay: calc(var(--i) * 30ms);
+}
+.game-werwolf .ww-pick-btn small { font-weight: 500; color: var(--text-muted); }
+.game-werwolf .ww-pick-btn[aria-pressed="true"] {
+  background: var(--role, var(--accent));
+  border-color: var(--role, var(--accent));
+  color: #0b0e22;
+  transform: scale(1.04);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--role, var(--accent)) 60%, transparent);
+}
+.game-werwolf .ww-role-turn .btn-primary {
+  background: var(--role);
+  color: #0b0e22;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--role) 40%, transparent);
+}
+.game-werwolf .ww-role-turn .btn-primary:disabled { opacity: .4; }
+
+/* Seherin: Kugel und Rollenkarte */
+.game-werwolf .ww-vision {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.game-werwolf .ww-orb {
+  position: absolute;
+  top: 40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 124, 246, .5), transparent 65%);
+  animation: ww-orb 2.4s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes ww-orb {
+  to { transform: scale(1.2); opacity: .6; }
+}
+.game-werwolf .ww-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 26px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #1c1830, #0d0b18);
+  box-shadow: inset 0 0 0 2px var(--role), 0 0 30px color-mix(in srgb, var(--role) 40%, transparent);
+  animation: ww-card-in .8s cubic-bezier(.2, .9, .3, 1.3) backwards;
+}
+@keyframes ww-card-in {
+  from { transform: rotateY(90deg) scale(.6); opacity: 0; }
+}
+
+/* Werwölfe: Krallenspuren */
+.game-werwolf .ww-claw {
+  position: relative;
+  height: 110px;
+  margin: 0 auto;
+  width: 120px;
+}
+.game-werwolf .ww-claw i {
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 110px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, transparent, var(--blood) 30%, #7a0f14 70%, transparent);
+  transform: rotate(18deg) scaleY(0);
+  transform-origin: top;
+  animation: ww-scratch .35s cubic-bezier(.6, 0, .3, 1) forwards;
+}
+.game-werwolf .ww-claw i:nth-child(1) { left: 26px; }
+.game-werwolf .ww-claw i:nth-child(2) { left: 55px; animation-delay: .07s; }
+.game-werwolf .ww-claw i:nth-child(3) { left: 84px; animation-delay: .14s; }
+@keyframes ww-scratch {
+  to { transform: rotate(18deg) scaleY(1); }
+}
+
+/* Hexe: zwei Tränke */
+.game-werwolf .ww-potions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.game-werwolf .ww-potion {
+  appearance: none;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 16px 8px;
+  border: 1.5px solid var(--potion);
+  border-radius: var(--radius-lg);
+  background: radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--potion) 30%, transparent), transparent 70%), var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  animation: ww-rise .4s ease backwards;
+}
+.game-werwolf .ww-potion span {
+  font-size: 40px;
+  animation: ww-bubble 2s ease-in-out infinite;
+}
+@keyframes ww-bubble {
+  50% { transform: translateY(-4px) rotate(-6deg); }
+}
+.game-werwolf .ww-potion b { font-size: 16px; }
+.game-werwolf .ww-potion small { font-size: 12.5px; color: var(--text-muted); overflow-wrap: anywhere; }
+.game-werwolf .ww-potion.is-heal { --potion: #34c46b; }
+.game-werwolf .ww-potion.is-poison { --potion: #a463f2; animation-delay: .08s; }
+.game-werwolf .ww-potion:disabled {
+  opacity: .35;
+  filter: grayscale(.7);
+  cursor: default;
+}
+.game-werwolf .ww-potion:disabled span { animation: none; }
+
+/* Verliebte */
+.game-werwolf .ww-lovers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 34px;
+  letter-spacing: .03em;
+}
+.game-werwolf .ww-lovers i {
+  font-style: normal;
+  animation: ww-heart .9s ease-in-out infinite;
+}
+@keyframes ww-heart {
+  20% { transform: scale(1.3); }
+  40% { transform: scale(1); }
+}
+
+/* ---------- Tag ---------- */
+.game-werwolf .ww-day { gap: 16px; }
+.game-werwolf .ww-sun {
+  width: 120px;
+  height: 120px;
+  margin: 30px auto 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 40%, #fff6c8, #ffc65c 55%, #f08a3a);
+  box-shadow: 0 0 60px rgba(255, 198, 92, .7), 0 0 140px rgba(255, 150, 80, .45);
+  animation: ww-sunrise 1.6s cubic-bezier(.2, .8, .3, 1) backwards;
+}
+@keyframes ww-sunrise {
+  from { transform: translateY(160px) scale(.7); opacity: 0; }
+}
+.game-werwolf .ww-relief {
+  text-align: center;
+  font-size: 18px;
+  animation: ww-rise .5s ease .3s backwards;
+}
+.game-werwolf .ww-graves {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.game-werwolf .ww-graves li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
+  animation: ww-grave-in .6s cubic-bezier(.2, .9, .3, 1.3) backwards;
+  animation-delay: calc(var(--i) * 700ms);
+}
+@keyframes ww-grave-in {
+  from { opacity: 0; transform: translateY(-40px) rotate(-4deg); }
+}
+.game-werwolf .ww-grave {
+  grid-row: span 2;
+  font-size: 40px;
+}
+.game-werwolf .ww-grave-text { display: grid; }
+.game-werwolf .ww-grave-text b { font-size: 20px; }
+.game-werwolf .ww-grave-text small { color: var(--text-muted); }
+.game-werwolf .ww-grave-role {
+  justify-self: start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--role) 25%, transparent);
+  box-shadow: inset 0 0 0 1px var(--role);
+  font-size: 13px;
+  font-weight: 700;
+  animation: ww-card-in .6s cubic-bezier(.2, .9, .3, 1.3) backwards;
+  animation-delay: calc(var(--i) * 700ms + 450ms);
+}
+
+/* Diskussion mit Uhr */
+.game-werwolf .ww-clock {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+}
+.game-werwolf .ww-clock svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.game-werwolf .ww-clock-back,
+.game-werwolf .ww-clock-ring {
+  fill: none;
+  stroke-width: 7;
+}
+.game-werwolf .ww-clock-back { stroke: rgba(255, 255, 255, .15); }
+.game-werwolf .ww-clock-ring {
+  stroke: #ffc65c;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+}
+.game-werwolf .ww-clock.is-running .ww-clock-ring { animation: ww-clock var(--ms) linear forwards; }
+@keyframes ww-clock {
+  to { stroke-dashoffset: 100; }
+}
+.game-werwolf .ww-clock.is-urgent .ww-clock-ring { stroke: var(--blood); }
+.game-werwolf .ww-clock-time {
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-variant-numeric: tabular-nums;
+}
+.game-werwolf .ww-alive {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.game-werwolf .ww-alive li {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-weight: 600;
+  animation: ww-rise .35s ease backwards;
+  animation-delay: calc(var(--i) * 40ms);
+}
+.game-werwolf .ww-day .btn-link,
+.game-werwolf .ww-night .btn-link { align-self: center; }
+
+/* ---------- Spielende ---------- */
+.game-werwolf .ww-end { gap: 14px; }
+.game-werwolf .ww-end-emoji {
+  font-size: 84px;
+  animation: ww-wake .8s cubic-bezier(.2, .9, .3, 1.4) backwards, ww-breathe 3s ease-in-out 1s infinite;
+  --role: #ffc65c;
+}
+.game-werwolf .ww-reveal-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.game-werwolf .ww-reveal-list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  box-shadow: inset 3px 0 0 var(--role);
+  text-align: left;
+  animation: ww-card-in .5s cubic-bezier(.2, .9, .3, 1.3) backwards;
+  animation-delay: calc(var(--i) * 60ms + 400ms);
+}
+.game-werwolf .ww-reveal-list li.is-dead { opacity: .55; }
+.game-werwolf .ww-reveal-emoji {
+  grid-row: span 2;
+  font-size: 26px;
+}
+.game-werwolf .ww-reveal-list b { overflow-wrap: anywhere; }
+.game-werwolf .ww-reveal-list small { color: var(--text-muted); }
+.game-werwolf .ww-end .btn-link { align-self: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .game-werwolf::before { animation: none; }
+}
+
+/* Stimme der Erzählung auswählen */
+.game-werwolf .ww-voice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.game-werwolf .ww-voice[hidden] { display: none; }
+.game-werwolf .ww-voice-select {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font: 600 15px var(--font-body);
+  color: var(--text);
+}
+.game-werwolf .ww-voice-test {
+  padding-inline: 14px;
+  white-space: nowrap;
+}
