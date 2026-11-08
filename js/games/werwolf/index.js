@@ -349,9 +349,8 @@ function mount(ctx) {
       if (flip.classList.contains('is-open')) return;
       flip.classList.add('is-open');
       done.disabled = false;
-      vibrate(entry.role === 'werwolf' ? [0, 40, 40, 80] : 20);
-      if (entry.role === 'werwolf') sound.growl();
-      else sound.reveal();
+      // Für jede Rolle gleich und ohne Ton – sonst hören die anderen, wer Werwolf ist
+      vibrate(20);
     });
     done.addEventListener('click', () => {
       flip.classList.remove('is-open');
@@ -457,7 +456,6 @@ function mount(ctx) {
 
   function sleepAgain(role, done) {
     speak(`${ROLES[role].name === 'Werwolf' ? 'Die Werwölfe schlafen' : `${articleName(role)} schläft`} wieder ein.`);
-    vibrate(15);
     done();
   }
 
@@ -500,7 +498,8 @@ function mount(ctx) {
         }
         button.setAttribute('aria-pressed', String(picked.includes(name)));
         confirmButton.disabled = picked.length !== count;
-        sound.tap();
+        // Nachts still: Eine tote Rolle tippt nichts, Geräusche würden verraten, wer noch lebt
+        if (root.classList.contains('is-day')) sound.tap();
       });
     }
     confirmButton.addEventListener('click', () => onPick([...picked]), { once: true });
@@ -555,7 +554,6 @@ function mount(ctx) {
       confirm: '🔮 In die Kugel schauen',
       onPick: ([name]) => {
         const target = person(name);
-        sound.vision();
         $('.ww-content', root).innerHTML = `
           <div class="ww-vision">
             <span class="ww-orb" aria-hidden="true"></span>
@@ -613,7 +611,6 @@ function mount(ctx) {
       $('[data-action="heal"]', box).addEventListener('click', () => {
         potions.heal = false;
         healed = true;
-        sound.potion();
         fx.toast(`${victim} ist gerettet`);
         menu();
       });
@@ -626,7 +623,6 @@ function mount(ctx) {
             if (name) {
               potions.poison = false;
               poisoned = name;
-              sound.potion();
             }
             menu();
           },
@@ -876,18 +872,14 @@ function voiceLabel(voice) {
   return region ? `${name} · ${region}` : name;
 }
 
-// Nachtklänge: Eule, Heulen, Glocke – alles aus Tönen und Rauschen
+// Nachtklänge: Eule, Heulen, Glocke – alles aus Tönen und Rauschen.
+// Nachts gibt es nur Klänge, die bei jeder Rolle gleich ablaufen (auch wenn sie schon tot ist).
 function createSounds(audio) {
   const chord = (notes, { type = 'triangle', volume = 0.12, gap = 0.08, duration = 0.3 } = {}) => {
     notes.forEach((freq, index) => audio.tone({ freq, duration, type, volume, delay: index * gap }));
   };
   return {
     tap: () => audio.tone({ freq: 880, duration: 0.04, type: 'sine', volume: 0.06 }),
-    reveal: () => chord([523, 659, 784], { volume: 0.1 }),
-    growl: () => {
-      audio.tone({ freq: 90, slideTo: 60, duration: 0.7, type: 'sawtooth', volume: 0.18 });
-      audio.noise({ duration: 0.6, volume: 0.15, cutoff: 500 });
-    },
     cover: () => audio.noise({ duration: 0.12, volume: 0.1, cutoff: 2500 }),
     night: () => {
       // Eule: „Hu – huu“
@@ -906,10 +898,6 @@ function createSounds(audio) {
     bite: () => {
       audio.noise({ duration: 0.18, volume: 0.35, cutoff: 1800 });
       audio.tone({ freq: 110, slideTo: 55, duration: 0.3, type: 'square', volume: 0.12 });
-    },
-    vision: () => chord([1047, 1319, 1568, 2093], { type: 'sine', volume: 0.07, gap: 0.09, duration: 0.6 }),
-    potion: () => {
-      for (let i = 0; i < 6; i++) audio.tone({ freq: 300 + Math.random() * 500, slideTo: 900, duration: 0.08, type: 'sine', volume: 0.07, delay: i * 0.07 });
     },
     love: () => chord([659, 784, 988, 1319], { type: 'sine', volume: 0.08, gap: 0.1, duration: 0.5 }),
     morning: () => {
