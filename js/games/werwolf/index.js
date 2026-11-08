@@ -11,6 +11,10 @@ const TALK_OPTIONS = ['2', '3', '5', 'ohne']; // Minuten Diskussion
 const SPECIALS = ['seherin', 'hexe', 'jaeger', 'amor'];
 const DEFAULT_SPECIALS = ['seherin', 'hexe'];
 
+const VOICE_RATE = 0.84;  // Erzählstimme etwas langsamer als normal
+const VOICE_PITCH = 1;    // natürliche Tonhöhe – tiefer klingt schnell nach Roboter
+const SAMPLE_TEXT = 'Die Nacht bricht herein. Alle schließen die Augen … und das Dorf schläft.';
+
 const STEP_PAUSE_MS = 1800;      // zwischen „schläft ein“ und der nächsten Rolle
 const FAKE_TURN_MS = [7000, 11000]; // so lange „wartet“ eine Rolle, die schon tot ist
 const LOVERS_MS = 7000;          // Verliebte schauen sich an
@@ -100,6 +104,7 @@ function mount(ctx) {
   let wolves = WOLF_OPTIONS.includes(storage.get('wolves')) ? storage.get('wolves') : 'auto';
   let talk = TALK_OPTIONS.includes(storage.get('talk')) ? storage.get('talk') : '3';
   let voiceOn = storage.get('voice') !== 'aus';
+  let voiceName = storage.get('voiceName', '');
 
   let cast = [];          // [{ name, role, alive }]
   let lovers = [];        // zwei Namen
@@ -118,17 +123,21 @@ function mount(ctx) {
 
   // ---------- Erzählstimme ----------
 
-  function speak(text) {
-    if (!voiceOn || !('speechSynthesis' in window)) return;
+  // Satz für Satz sprechen: Zwischen den Sätzen entsteht eine kleine Pause, das klingt weniger hastig
+  function speak(text, force = false) {
+    if ((!voiceOn && !force) || !('speechSynthesis' in window)) return;
     const synth = window.speechSynthesis;
     synth.cancel();
-    const line = new SpeechSynthesisUtterance(text);
-    line.lang = 'de-DE';
-    line.rate = 0.92;
-    line.pitch = 0.85;
-    const voice = synth.getVoices().find((entry) => entry.lang?.toLowerCase().startsWith('de'));
-    if (voice) line.voice = voice;
-    synth.speak(line);
+    const voices = germanVoices();
+    const voice = voices.find((entry) => entry.name === voiceName) ?? voices[0];
+    for (const sentence of text.split(/(?<=[.!?…])\s+/)) {
+      const line = new SpeechSynthesisUtterance(sentence);
+      line.lang = voice?.lang ?? 'de-DE';
+      line.rate = VOICE_RATE;
+      line.pitch = VOICE_PITCH;
+      if (voice) line.voice = voice;
+      synth.speak(line);
+    }
   }
 
   // ---------- Hilfen ----------
@@ -214,8 +223,12 @@ function mount(ctx) {
             ${setupRow({
               label: 'Erzählstimme',
               control: segmented({ name: 'voice', label: 'Erzählstimme', options: [{ value: 'an', label: '🔊 An' }, { value: 'aus', label: '🔇 Aus' }], value: voiceOn ? 'an' : 'aus' }),
-            })}`,
-          note: 'Die Stimme liest nachts vor, wer aufwachen soll – so muss niemand die Spielleitung übernehmen.',
+            })}
+            <div class="ww-voice"${voiceOn ? '' : ' hidden'}>
+              <select class="ww-voice-select" aria-label="Stimme der Erzählung"></select>
+              <button class="btn btn-ghost ww-voice-test" type="button">▶ Probe</button>
+            </div>`,
+          note: 'Die Stimme liest nachts vor, wer aufwachen soll. Am iPhone klingt sie viel natürlicher mit einer „Erweitert“- oder „Premium“-Stimme: Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Deutsch.',
         },
       ],
       start: '<button class="btn btn-primary" type="button" data-action="start">Rollen verteilen</button>',
@@ -249,10 +262,31 @@ function mount(ctx) {
       talk = value;
       storage.set('talk', value);
     });
+    const voiceBox = $('.ww-voice', root);
+    const voiceSelect = $('.ww-voice-select', root);
+    // Die Stimmen lädt der Browser manchmal erst nach dem Start – dann wird die Liste neu gefüllt
+    const fillVoices = () => {
+      const voices = germanVoices();
+      voiceSelect.innerHTML = voices.length
+        ? voices.map((voice) => `<option value="${esc(voice.name)}"${voice.name === voiceName ? ' selected' : ''}>${esc(voiceLabel(voice))}</option>`).join('')
+        : '<option value="">Standardstimme</option>';
+    };
+    fillVoices();
+    window.speechSynthesis?.addEventListener('voiceschanged', fillVoices);
+    ctx.onCleanup(() => window.speechSynthesis?.removeEventListener('voiceschanged', fillVoices));
+    voiceSelect.addEventListener('change', () => {
+      voiceName = voiceSelect.value;
+      storage.set('voiceName', voiceName);
+      speak(SAMPLE_TEXT, true);
+    });
+    $('.ww-voice-test', root).addEventListener('click', () => speak(SAMPLE_TEXT, true));
+
     bindSegmented(root, 'voice', (value) => {
       voiceOn = value === 'an';
       storage.set('voice', value);
+      voiceBox.hidden = !voiceOn;
       if (voiceOn) speak('Die Erzählstimme ist an.');
+      else window.speechSynthesis?.cancel();
     });
     players = bindPlayerEditor(root, 'players', {
       min: MIN_PLAYERS,
@@ -817,6 +851,29 @@ function mount(ctx) {
     $('[data-action="again"]', root).addEventListener('click', startGame);
     $('[data-action="setup"]', root).addEventListener('click', showSetup);
   }
+}
+
+// Deutsche Stimmen des Geräts, die natürlichsten zuerst (Premium/Erweitert/neuronale Stimmen)
+function germanVoices() {
+  if (!('speechSynthesis' in window)) return [];
+  return window.speechSynthesis.getVoices()
+    .filter((voice) => voice.lang?.toLowerCase().startsWith('de'))
+    .sort((a, b) => voiceScore(b) - voiceScore(a));
+}
+
+function voiceScore(voice) {
+  let score = 0;
+  if (/premium|neural|natural|online/i.test(voice.name)) score += 4;
+  if (/enhanced|erweitert|google|siri/i.test(voice.name)) score += 3;
+  if (voice.lang === 'de-DE') score += 1;
+  return score;
+}
+
+// „Eddy (Deutsch (Deutschland))“ → „Eddy“, Österreich und Schweiz bekommen einen Zusatz
+function voiceLabel(voice) {
+  const name = voice.name.replace(/\s*\(.*\)\s*$/, '');
+  const region = { 'de-AT': 'Österreich', 'de-CH': 'Schweiz' }[voice.lang];
+  return region ? `${name} · ${region}` : name;
 }
 
 // Nachtklänge: Eule, Heulen, Glocke – alles aus Tönen und Rauschen

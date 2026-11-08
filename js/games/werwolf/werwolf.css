@@ -643,3 +643,24 @@
 @media (prefers-reduced-motion: reduce) {
   .game-werwolf::before { animation: none; }
 }
+
+/* Stimme der Erzählung auswählen */
+.game-werwolf .ww-voice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.game-werwolf .ww-voice[hidden] { display: none; }
+.game-werwolf .ww-voice-select {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font: 600 15px var(--font-body);
+  color: var(--text);
+}
+.game-werwolf .ww-voice-test {
+  padding-inline: 14px;
+  white-space: nowrap;
+}
