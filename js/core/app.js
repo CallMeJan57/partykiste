@@ -3,6 +3,7 @@
 
 import { COIN_ICON, openCoin } from '../coin/coin.js';
 import { DICE_ICON, openDice } from '../dice/dice.js';
+import { FINGER_ICON, openFinger } from '../finger/finger.js';
 import { renderHub } from '../hub/hub.js';
 import { trackEvent } from './analytics.js';
 import * as audio from './audio.js';
@@ -146,6 +147,7 @@ export function startApp({ name, games, sections = [], topbar, view }) {
            ${tools.map((tool) => `<a class="icon-btn tool-btn" href="#/${esc(tool.id)}" aria-label="${esc(tool.title)} öffnen">${tool.icon ?? ''}</a>`).join('')}
            <button class="icon-btn dice-btn" type="button" data-action="dice" aria-label="Würfel öffnen">${DICE_ICON}</button>
            <button class="icon-btn coin-btn" type="button" data-action="coin" aria-label="Münzwurf öffnen">${COIN_ICON}</button>
+           <button class="icon-btn finger-btn" type="button" data-action="finger" aria-label="Finger-Auswahl öffnen">${FINGER_ICON}</button>
            ${mute}
          </div>`;
 
@@ -161,6 +163,10 @@ export function startApp({ name, games, sections = [], topbar, view }) {
     $('[data-action="coin"]', topbar)?.addEventListener('click', () => {
       openCoin();
       trackEvent('werkzeug/muenze', 'Münzwurf');
+    });
+    $('[data-action="finger"]', topbar)?.addEventListener('click', () => {
+      openFinger();
+      trackEvent('werkzeug/finger', 'Finger-Auswahl');
     });
     const muteButton = $('[data-action="mute"]', topbar);
     muteButton.addEventListener('click', () => {

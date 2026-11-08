@@ -1,0 +1,231 @@
+/* Finger-Auswahl (js/finger/finger.js) – füllt den ganzen Bildschirm */
+
+/* Knopf in der Kopfzeile: tippt ab und zu an */
+.finger-btn {
+  color: #22d3ee;
+  border-color: color-mix(in srgb, #22d3ee 45%, var(--line));
+  animation: finger-btn-tap 7s ease-in-out 3s infinite;
+}
+.finger-btn svg { width: 21px; height: 21px; }
+@keyframes finger-btn-tap {
+  0%, 86%, 100% { transform: none; }
+  89% { transform: translateY(2px) scale(.9); }
+  92% { transform: translateY(-1px) scale(1.06); }
+}
+
+html.finger-open { overflow: hidden; }
+
+.finger-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 35; /* unter Konfetti (40), Blitz (50) und Hinweisen (60) */
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 40%, #1d1a3a, #0b0a17 75%);
+  color: #ffffff;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.finger-field {
+  position: absolute;
+  inset: 0;
+}
+
+.finger-top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 12px;
+}
+.finger-modes {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+}
+.finger-modes button {
+  appearance: none;
+  padding: 9px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: 700 13px var(--font-body);
+  color: rgba(255, 255, 255, .7);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.finger-modes button[aria-pressed="true"] {
+  background: #ffffff;
+  color: #0b0a17;
+}
+.finger-close {
+  flex: none;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, .25);
+}
+
+/* Hinweis in der Mitte, solange Finger fehlen */
+.finger-hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(90vw, 340px);
+  text-align: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: opacity .3s ease, transform .3s ease;
+}
+.finger-hint.is-hidden {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.9);
+}
+.finger-hint-hands {
+  display: flex;
+  gap: 14px;
+  font-size: 48px;
+}
+.finger-hint-hands i {
+  font-style: normal;
+  animation: finger-press 1.6s ease-in-out infinite;
+}
+.finger-hint-hands i:nth-child(2) { animation-delay: .2s; }
+.finger-hint-hands i:nth-child(3) { animation-delay: .4s; }
+@keyframes finger-press {
+  0%, 100% { transform: translateY(-8px); }
+  45%, 60% { transform: translateY(6px) scale(.92); }
+}
+.finger-hint-title {
+  font-family: var(--font-display);
+  font-size: 38px;
+  letter-spacing: .04em;
+  line-height: 1;
+}
+.finger-hint-text {
+  font-size: 15px;
+  color: rgba(255, 255, 255, .7);
+}
+
+/* Ein Finger: farbiger Kreis, der pulsiert */
+.finger-dot {
+  position: absolute;
+  z-index: 2;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c) 55%, transparent) 30%, transparent 72%);
+  box-shadow: 0 0 0 6px var(--c), 0 0 34px var(--c);
+  pointer-events: none;
+  animation: finger-in .35s cubic-bezier(.2, .9, .3, 1.5) backwards, finger-pulse 1.1s ease-in-out .35s infinite;
+}
+@keyframes finger-in {
+  from { transform: scale(0); opacity: 0; }
+}
+@keyframes finger-pulse {
+  50% { transform: scale(1.08); }
+}
+/* Countdown: ein Ring zieht sich um jeden Finger zusammen */
+.finger-dot::before {
+  content: '';
+  position: absolute;
+  inset: -34px;
+  border: 3px solid var(--c);
+  border-radius: 50%;
+  opacity: 0;
+}
+.finger-dot.is-counting::before { animation: finger-close-in var(--ms) cubic-bezier(.5, 0, .9, .6) forwards; }
+.finger-dot.is-counting { animation: finger-in .35s cubic-bezier(.2, .9, .3, 1.5) backwards, finger-pulse .45s ease-in-out infinite; }
+@keyframes finger-close-in {
+  0% { opacity: 0; transform: scale(1.4); }
+  15% { opacity: .9; }
+  100% { opacity: 1; transform: scale(.7); }
+}
+.finger-dot.is-gone { animation: finger-out .3s ease forwards; }
+@keyframes finger-out {
+  to { transform: scale(0); opacity: 0; }
+}
+/* Auswahl: Gewinner wachsen und leuchten, alle anderen verschwinden */
+.finger-dot.is-out { animation: finger-out .4s ease forwards; }
+.finger-dot.is-picked {
+  z-index: 4;
+  animation: finger-win .7s cubic-bezier(.2, .9, .3, 1.4) forwards;
+}
+@keyframes finger-win {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.9); box-shadow: 0 0 0 10px var(--c), 0 0 80px var(--c); }
+  100% { transform: scale(1.5); box-shadow: 0 0 0 8px #ffffff, 0 0 60px var(--c); }
+}
+.finger-dot.is-team {
+  animation: finger-team .6s cubic-bezier(.2, .9, .3, 1.4) backwards;
+  animation-delay: calc(var(--i) * 90ms);
+  transform: scale(1.3);
+}
+.finger-dot.is-team::after {
+  content: attr(data-team);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 40px;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+}
+@keyframes finger-team {
+  from { transform: scale(.6) rotate(-90deg); }
+}
+
+/* Farbe des Gewinners flutet vom Finger aus den Bildschirm */
+.finger-flood {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--c);
+  clip-path: circle(0 at var(--x) var(--y));
+  opacity: .55;
+  pointer-events: none;
+}
+.finger-flood.is-on { animation: finger-flood .9s cubic-bezier(.3, 0, .2, 1) .15s forwards; }
+@keyframes finger-flood {
+  to { clip-path: circle(150% at var(--x) var(--y)); }
+}
+
+.finger-result {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(40px + env(safe-area-inset-bottom));
+  z-index: 3;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 14vw, 72px);
+  letter-spacing: .04em;
+  line-height: 1;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, .45);
+  pointer-events: none;
+}
+.finger-result:not(:empty) { animation: finger-result .6s cubic-bezier(.2, .9, .3, 1.5) .25s backwards; }
+@keyframes finger-result {
+  from { opacity: 0; transform: translateY(30px) scale(.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finger-btn,
+  .finger-dot,
+  .finger-hint-hands i { animation: none; }
+  .finger-flood.is-on { clip-path: none; }
+}

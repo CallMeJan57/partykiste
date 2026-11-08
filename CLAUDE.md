@@ -18,6 +18,7 @@ Lokal starten: `python3 tools/serve.py` (wie `python3 -m http.server 8000`, aber
 - `css/` – Design-Tokens (helles + dunkles Theme), gemeinsame Bausteine, Startseite
 - `js/dice/` + `css/dice.css` – Würfelbecher (kein Spiel): Würfel-Knopf in der Kopfzeile der Startseite, öffnet ein Fenster mit 1–5 Würfeln (flach in 2D – 3D-Würfel liefen ruckelig und fehlerhaft)
 - `js/coin/` + `css/coin.css` – Münzwurf (kein Spiel): Münz-Knopf neben dem Würfel, Fenster wie der Würfelbecher; die Münze dreht sich flach (Höhe mit cos gestaucht). Würfe und Zählerstand bleiben bis zum Neuladen der App
+- `js/finger/` + `css/finger.css` – Finger-Auswahl (kein Spiel): Knopf neben der Münze, Vollbild; alle legen einen Finger auf (Pointer Events, mehrere gleichzeitig), nach kurzer Ruhe wird 1 oder 2 gewählt oder in 2 Teams geteilt
 - Regelrad ist ein Werkzeug (`tool: true`): kein Eintrag in der Spieleliste, sondern ein Knopf in der Kopfzeile der Startseite (neben dem Würfel). Seine aktiven Regeln (`js/games/regelrad/active-rules.js`) erscheinen auch auf der Startseite
 - UI-Texte auf Deutsch, Bezeichner im Code auf Englisch
 - Song-Raten: Hörproben kommen zur Laufzeit von der iTunes-Suche (`js/games/song-raten/itunes.js`, CORS erlaubt, ~20 Anfragen/Minute); `songs.js` enthält nur Interpret + Titel. Am iPhone blockiert WebKit die Suche, deshalb liegen die Hörproben-Adressen vorab in `previews.js` (erzeugt von `tools/song-hoerproben.py`, nach Änderungen an `songs.js` erneut ausführen, dauert ~25 Min.); nur fehlende Songs werden live gesucht. Spotify bewusst nicht eingebunden.
