@@ -1,4 +1,5 @@
 import { $, esc } from '../../core/dom.js';
+import { isPartyGame, partyFinish } from '../../core/party.js';
 import { shuffle } from '../../core/random.js';
 import { getTeams, teamLabel, teamMember } from '../../core/teams.js';
 import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, teamModeControl, toggleList } from '../../core/ui.js';
@@ -135,6 +136,7 @@ function mount(ctx) {
 
   let named = false;
   let playAs = storage.get('playAs') === 'teams' ? 'teams' : 'solo';
+  if (isPartyGame('black-stories')) playAs = 'teams'; // Partyabend: immer in Teams
   let sides = [];      // im Teammodus: Teams aus core/teams.js leiten reihum den Fall
   let scores = new Map();
   let deck = [];
@@ -738,6 +740,7 @@ function mount(ctx) {
         <button class="btn-link" type="button" data-action="setup">Einstellungen</button>
       </section>`;
     $('[data-action="again"]', root).addEventListener('click', startGame);
+    partyFinish(root, 'black-stories', scores);
     $('[data-action="setup"]', root).addEventListener('click', showSetup);
   }
 }

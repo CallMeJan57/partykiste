@@ -1,6 +1,7 @@
 // Spieleauswahl: eine Karte pro Spiel aus js/games/index.js (Werkzeuge wie das Regelrad sitzen in der Kopfzeile).
 
 import { esc } from '../core/dom.js';
+import { partyStatus } from '../core/party.js';
 import { bindPlayerEditor, bindTeamEditor, playerEditor, splitLetters, teamEditor } from '../core/ui.js';
 import { loadActiveRules, saveActiveRules, untilLabel } from '../games/regelrad/active-rules.js';
 
@@ -29,6 +30,7 @@ export function renderHub(view, { games, sections = [], tools = [], onOpen }) {
         <hr class="hub-divider">
         ${teamEditor({ name: 'hub-teams' })}
       </section>
+      <div class="hub-evening-slot"></div>
       <div class="hub-rules" aria-live="polite"></div>
       ${groupGames(games, sections).map((group) => `
         <section class="hub-section">
@@ -42,6 +44,7 @@ export function renderHub(view, { games, sections = [], tools = [], onOpen }) {
   for (const link of view.querySelectorAll('.game-tile')) {
     link.addEventListener('click', onOpen);
   }
+  renderParty(view.querySelector('.hub-evening-slot'), games, onOpen);
   renderRules(view.querySelector('.hub-rules'), [...tools, ...games].find((game) => game.id === RULE_GAME_ID), onOpen);
   // Mitspieler und Teams direkt auf der Startseite – dieselben wie in allen Spielen
   const teams = bindTeamEditor(view, 'hub-teams');
@@ -74,6 +77,24 @@ function groupGames(games, sections) {
   const rest = games.filter((game) => !placed.has(game));
   if (rest.length) groups.push({ emoji: '🎲', title: groups.length ? 'Weitere Spiele' : 'Spiele', games: rest });
   return groups;
+}
+
+// Partyabend (optional): Knopf zum Starten – läuft einer, zeigt er, welches Spiel als Nächstes dran ist
+function renderParty(box, games, onOpen) {
+  const status = partyStatus();
+  const next = status?.next ? games.find((game) => game.id === status.next) : null;
+  box.innerHTML = `
+    <a class="hub-evening${status ? ' is-active' : ''}" href="#/partyabend">
+      <span class="hub-evening-icon" aria-hidden="true">${status ? '🏆' : '🎉'}</span>
+      <span class="hub-evening-text">
+        <b>${status ? 'Partyabend läuft' : 'Partyabend'}</b>
+        <small>${status
+          ? (next ? `Spiel ${status.index + 1} von ${status.count}: ${esc(next.title)}` : 'Die Siegerehrung wartet')
+          : 'Mehrere Spiele, eine Gesamtwertung für eure Teams'}</small>
+      </span>
+      <span class="hub-evening-go" aria-hidden="true">→</span>
+    </a>`;
+  box.querySelector('a').addEventListener('click', onOpen);
 }
 
 // Aktive Regeln aus dem Regelrad – sie gelten auch, während ein anderes Spiel läuft.

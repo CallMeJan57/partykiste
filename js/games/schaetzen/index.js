@@ -1,4 +1,5 @@
 import { $, esc } from '../../core/dom.js';
+import { isPartyGame, partyFinish } from '../../core/party.js';
 import { between, shuffle } from '../../core/random.js';
 import { getTeams, teamLabel } from '../../core/teams.js';
 import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupScreen, teamModeControl, toggleList } from '../../core/ui.js';
@@ -170,6 +171,7 @@ function mount(ctx) {
   let players = ctx.players.get();
   let named = false;
   let mode = storage.get('mode') === 'teams' ? 'teams' : 'solo';
+  if (isPartyGame('schaetzen')) mode = 'teams'; // Partyabend: immer in Teams
   let sides = [];      // im Teammodus: Teams aus core/teams.js, jedes Team schätzt gemeinsam
   let points = new Map();
   let queue = [];
@@ -672,6 +674,7 @@ function mount(ctx) {
         <button class="btn-link" type="button" data-action="setup">Einstellungen</button>
       </section>`;
     $('[data-action="again"]', root).addEventListener('click', startGame);
+    partyFinish(root, 'schaetzen', points);
     $('[data-action="setup"]', root).addEventListener('click', showSetup);
   }
 }

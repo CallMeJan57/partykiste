@@ -1,4 +1,5 @@
 import { $, esc } from '../../core/dom.js';
+import { isPartyGame, partyFinish } from '../../core/party.js';
 import { shuffle } from '../../core/random.js';
 import { getTeams, teamLabel, teamMember } from '../../core/teams.js';
 import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupScreen, splitLetters, teamModeControl, toggleList } from '../../core/ui.js';
@@ -94,6 +95,7 @@ function mount(ctx) {
   let players = ctx.players.get();
   let named = false;   // true = mit Namen, wer dran ist, und Punkten
   let mode = storage.get('mode') === 'teams' ? 'teams' : 'solo';
+  if (isPartyGame('pantomime')) mode = 'teams'; // Partyabend: immer in Teams
   let sides = [];      // im Teammodus: Teams aus core/teams.js, reihum dran
   let scores = new Map();
   let deck = [];
@@ -641,6 +643,7 @@ function mount(ctx) {
         <button class="btn-link" type="button" data-action="setup">Einstellungen</button>
       </section>`;
     $('[data-action="again"]', root).addEventListener('click', startGame);
+    partyFinish(root, 'pantomime', scores);
     $('[data-action="setup"]', root).addEventListener('click', showSetup);
     if (guessed) applauseHands();
   }

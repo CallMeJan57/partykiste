@@ -3,7 +3,7 @@
 import { esc } from './dom.js';
 import { reducedMotion } from './fx.js';
 import { MAX_NAME_LENGTH, getPlayers, setPlayers, validateName } from './players.js';
-import { MAX_TEAM_NAME, MIN_TEAM_SIZE, TEAM_COUNTS, TEAM_SIZES, getTeamSettings, getTeams, moveToTeam, setTeamName, setTeamSettings, shuffleTeams, swapMembers } from './teams.js';
+import { MAX_TEAM_NAME, MIN_TEAM_SIZE, TEAM_COUNTS, TEAM_EMOJIS, TEAM_SIZES, getTeamSettings, getTeams, moveToTeam, setTeamEmoji, setTeamName, setTeamSettings, shuffleTeams, swapMembers } from './teams.js';
 
 /**
  * Segment-Schalter, z. B. Kurz | Mittel | Lang.
@@ -234,6 +234,7 @@ export function bindTeamEditor(root, name, { open = false, onChange = () => {} }
   const shuffleButton = box.querySelector('.teams-shuffle');
   let players = getPlayers();
   let picked = null; // angetippte Person, die das Team wechseln soll
+  let emojiFor = null; // Team, dessen Symbol gerade ausgewählt wird
   let teams = [];
 
   function renderSummary() {
@@ -290,10 +291,17 @@ export function bindTeamEditor(root, name, { open = false, onChange = () => {} }
     list.innerHTML = teams.map((team, index) => `
       <li class="team-card${picked && !team.members.includes(picked) ? ' is-target' : ''}" style="--team: ${team.color}" data-team="${index}">
         <div class="team-head">
-          <span class="team-emoji" aria-hidden="true">${team.emoji}</span>
+          <button class="team-emoji" type="button" data-emoji-for="${index}" aria-expanded="${emojiFor === index}" aria-label="Symbol von Team ${index + 1} ändern">${esc(team.emoji)}</button>
           <input class="team-name" type="text" value="${esc(settings.names[index] ?? '')}" placeholder="${esc(team.defaultName)}" maxlength="${MAX_TEAM_NAME}" enterkeyhint="done" aria-label="Name von Team ${index + 1}">
           ${filled ? `<span class="team-size">${team.members.length}</span>` : ''}
         </div>
+        ${emojiFor === index ? `
+          <div class="team-emoji-picker">
+            <div class="team-emoji-grid">
+              ${[team.defaultEmoji, ...TEAM_EMOJIS.filter((emoji) => emoji !== team.defaultEmoji)].map((emoji, position) => `<button type="button" data-emoji="${esc(emoji)}" aria-pressed="${emoji === team.emoji}" style="--i: ${position}">${esc(emoji)}</button>`).join('')}
+            </div>
+            <input class="team-emoji-input" type="text" placeholder="Eigenes Emoji eintippen" aria-label="Eigenes Emoji für Team ${index + 1}" enterkeyhint="done">
+          </div>` : ''}
         ${filled ? `
           <div class="team-members">
             ${team.members.map((member) => manual
@@ -345,6 +353,14 @@ export function bindTeamEditor(root, name, { open = false, onChange = () => {} }
 
   // Eigener Teamname: speichern, ohne neu zu zeichnen (sonst springt der Cursor)
   list.addEventListener('input', (event) => {
+    const own = event.target.closest('.team-emoji-input');
+    if (own) {
+      if (setTeamEmoji(emojiFor, own.value)) {
+        emojiFor = null;
+        render();
+      }
+      return;
+    }
     const input = event.target.closest('.team-name');
     if (!input) return;
     setTeamName(Number(input.closest('[data-team]').dataset.team), input.value);
@@ -353,8 +369,24 @@ export function bindTeamEditor(root, name, { open = false, onChange = () => {} }
     onChange(teams);
   });
 
+  // Teamsymbol: antippen öffnet die Auswahl, ein Emoji übernimmt es (das erste ist das vorgefertigte)
   list.addEventListener('click', (event) => {
-    if (event.target.closest('.team-name') || getTeamSettings().mode !== 'manual') return;
+    const toggle = event.target.closest('[data-emoji-for]');
+    const choice = event.target.closest('[data-emoji]');
+    if (toggle) {
+      const index = Number(toggle.dataset.emojiFor);
+      emojiFor = emojiFor === index ? null : index;
+      render();
+    } else if (choice) {
+      const index = emojiFor;
+      setTeamEmoji(index, choice.dataset.emoji === teams[index].defaultEmoji ? '' : choice.dataset.emoji);
+      emojiFor = null;
+      render();
+    }
+  });
+
+  list.addEventListener('click', (event) => {
+    if (event.target.closest('.team-name, .team-emoji, .team-emoji-picker') || getTeamSettings().mode !== 'manual') return;
     const member = event.target.closest('button[data-name]')?.dataset.name;
     const card = event.target.closest('[data-team]');
     const team = (person) => teams.findIndex((entry) => entry.members.includes(person));

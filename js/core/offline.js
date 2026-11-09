@@ -1,6 +1,19 @@
 // Offline & App-Installation: meldet den Service Worker (sw.js) an und nennt ihm alle Dateien,
 // die die App braucht – auch die Styles der Spiele, die erst beim Öffnen eines Spiels geladen werden.
 
+/**
+ * Speichert Bilder eines Spiels komplett für offline (z. B. Kiss, Marry, Kill). Läuft im Hintergrund im Service Worker;
+ * onProgress bekommt { done, total, finished }. false, wenn (noch) kein Service Worker die Seite steuert.
+ */
+export function saveImagesOffline(cache, urls, onProgress = () => {}) {
+  const worker = typeof navigator !== 'undefined' && navigator.serviceWorker?.controller;
+  if (!worker) return false;
+  const channel = new MessageChannel();
+  channel.port1.onmessage = (event) => onProgress(event.data);
+  worker.postMessage({ type: 'save-images', cache, urls }, [channel.port2]);
+  return true;
+}
+
 export function enableOffline(games) {
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', async () => {
