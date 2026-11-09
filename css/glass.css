@@ -1,0 +1,279 @@
+/* Neues Design „Glas & Farbe“ (Zweig redesign): liegt über base/components/hub.css.
+   Immer dunkel, ein langsam treibender Farbhintergrund und milchige Glaskarten darüber.
+   Zum alten Design zurück: diese Datei in index.html nicht mehr laden und data-theme="dark" an <html> entfernen. */
+
+:root:root:root {
+  color-scheme: dark;
+  --bg: #0b0a1a;
+  --surface: #1b1833;
+  --surface-2: #24203f;
+  --text: #f4f2ff;
+  --text-muted: #b3add6;
+  --line: rgba(255, 255, 255, .14);
+  --line-strong: rgba(255, 255, 255, .38);
+  --accent: #c084fc;
+  --accent-2: #f472b6;
+  --on-accent: #1a0b2e;
+  --danger: #fb7185;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+
+  /* Glas-Bausteine */
+  --glass: linear-gradient(135deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .04));
+  --glass-strong: linear-gradient(135deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, .06));
+  --glass-edge: rgba(255, 255, 255, .16);
+  --glass-blur: blur(18px) saturate(160%);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .18);
+  --rainbow: linear-gradient(120deg, #ec4899, #8b5cf6 55%, #3b82f6);
+}
+
+html { background: var(--bg); }
+body { background: transparent; }
+
+/* ---------- Farbwolken hinter allem ---------- */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  z-index: -2;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: .55;
+}
+body::before {
+  width: 85vmax;
+  height: 85vmax;
+  left: -30vmax;
+  top: -30vmax;
+  background:
+    radial-gradient(circle at 35% 35%, #7c3aed, transparent 60%),
+    radial-gradient(circle at 75% 70%, #db2777, transparent 55%);
+  animation: glass-drift-a 26s ease-in-out infinite alternate;
+}
+body::after {
+  width: 80vmax;
+  height: 80vmax;
+  right: -35vmax;
+  bottom: -35vmax;
+  background:
+    radial-gradient(circle at 40% 40%, #0ea5e9, transparent 58%),
+    radial-gradient(circle at 70% 30%, #8b5cf6, transparent 55%);
+  animation: glass-drift-b 32s ease-in-out infinite alternate;
+}
+@keyframes glass-drift-a {
+  to { transform: translate(18vmax, 22vmax) rotate(40deg) scale(1.15); }
+}
+@keyframes glass-drift-b {
+  to { transform: translate(-22vmax, -14vmax) rotate(-35deg) scale(1.1); }
+}
+
+/* ---------- Kopfzeile ---------- */
+.icon-btn,
+.back-btn {
+  background: var(--glass);
+  border-color: var(--glass-edge);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15);
+  color: var(--text);
+}
+.wordmark {
+  background: linear-gradient(90deg, #ffffff, #d8b4fe 60%, #f9a8d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Gemeinsame Bausteine ---------- */
+.eyebrow { color: color-mix(in srgb, var(--text-muted) 85%, #ffffff); }
+
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: var(--rainbow);
+  color: #ffffff;
+  text-shadow: 0 1px 8px rgba(40, 0, 60, .35);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, .45), inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+/* Lichtreflex, der regelmäßig über den Knopf wandert */
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, .35) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: glass-shine 4.5s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+@keyframes glass-shine {
+  0%, 65% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+.btn-ghost {
+  background: var(--glass);
+  border-color: var(--glass-edge);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  color: var(--text);
+}
+.btn-link { color: var(--text-muted); }
+
+.seg {
+  padding: 4px;
+  background: rgba(0, 0, 0, .22);
+  border-color: var(--glass-edge);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .25);
+}
+.seg button { color: var(--text-muted); transition: color .2s ease; }
+.seg button[aria-pressed="true"] {
+  background: var(--rainbow);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, .45);
+  animation: glass-pick .35s cubic-bezier(.3, 1.5, .5, 1);
+}
+@keyframes glass-pick {
+  from { transform: scale(.85); }
+}
+
+.toggle-row {
+  background: rgba(255, 255, 255, .05);
+  border-color: rgba(255, 255, 255, .08);
+}
+.toggle-row[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 28%, transparent), rgba(255, 255, 255, .04));
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.toggle-check { border-color: rgba(255, 255, 255, .45); }
+.toggle-row[aria-pressed="true"] .toggle-check {
+  background: var(--rainbow);
+  border-color: transparent;
+}
+.toggle-row[aria-pressed="true"] .toggle-check::after { border-color: #ffffff; }
+
+.player-add input,
+.team-name:focus-visible,
+.team-emoji-input {
+  background: rgba(0, 0, 0, .22);
+  border-color: var(--glass-edge);
+}
+.player-add button { background: var(--rainbow); color: #ffffff; }
+.player-chip,
+.team-member {
+  background: rgba(255, 255, 255, .08);
+  border-color: var(--glass-edge);
+}
+.players-toggle { background: rgba(255, 255, 255, .1); }
+.players-toggle::before,
+.players-toggle::after { background: #ffffff; }
+.team-card { background: linear-gradient(100deg, color-mix(in srgb, var(--team) 22%, transparent), rgba(255, 255, 255, .04) 70%); }
+.team-emoji-picker { background: rgba(0, 0, 0, .25); }
+.chip { border-color: var(--glass-edge); background: rgba(255, 255, 255, .05); }
+
+/* ---------- Einstellungsseiten ---------- */
+.setup-card {
+  background: var(--glass);
+  border-color: var(--glass-edge);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}
+.setup-card-head { color: var(--text); }
+.setup-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 45%, transparent), rgba(255, 255, 255, .08));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25);
+  font-size: 16px;
+}
+.setup-count {
+  background: var(--rainbow);
+  color: #ffffff;
+}
+.setup-optional { background: rgba(255, 255, 255, .1); }
+.setup-row + .setup-row { border-top-color: rgba(255, 255, 255, .08); }
+.setup-start { background: linear-gradient(transparent, rgba(11, 10, 26, .9) 40%); }
+
+/* ---------- Startseite ---------- */
+.hub-title .hub-letter { color: hsl(calc(250 + var(--i) * 4), 95%, 90%); }
+.hub-today { color: #f9a8d4; }
+@keyframes hub-wave {
+  0%, 100% { color: #f9a8d4; transform: translateY(0); }
+  15% { color: #c4b5fd; transform: translateY(-5px); }
+  30% { color: #67e8f9; transform: translateY(0); }
+  45% { color: #f9a8d4; }
+}
+.hub-live { background: #f472b6; }
+
+.hub-players,
+.hub-rules,
+.hub-evening {
+  background: var(--glass);
+  border-color: var(--glass-edge);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}
+.hub-players:has(.players.is-open) { border-color: rgba(216, 180, 254, .45); }
+.hub-rule { background: rgba(255, 255, 255, .06); }
+
+.hub-section-title { color: var(--text); }
+.hub-section-title::after {
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(216, 180, 254, .6), transparent);
+}
+
+/* Glaskacheln: Farbschein des Spiels leuchtet durchs Glas, beim Antippen gibt es einen Lichtreflex */
+.game-tile {
+  background: var(--glass);
+  border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  transition: transform .2s cubic-bezier(.3, 1.4, .5, 1), box-shadow .2s ease, border-color .2s ease;
+}
+.game-tile::before {
+  right: -50px;
+  top: -50px;
+  width: 170px;
+  height: 170px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--card-accent) 55%, transparent), transparent);
+  filter: blur(6px);
+  animation: glass-glow 6s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -400ms);
+}
+@keyframes glass-glow {
+  to { transform: translate(-16px, 14px) scale(1.15); opacity: .8; }
+}
+.game-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .22) 48%, transparent 62%);
+  transform: translateX(-110%);
+  pointer-events: none;
+}
+.game-tile:active::after { animation: glass-tap .6s ease-out; }
+@keyframes glass-tap {
+  to { transform: translateX(110%); }
+}
+.game-tile:hover {
+  border-color: color-mix(in srgb, var(--card-accent) 60%, var(--glass-edge));
+  box-shadow: var(--glass-shadow), 0 0 26px color-mix(in srgb, var(--card-accent) 30%, transparent);
+}
+.game-tile:active { transform: scale(.96); }
+.game-tile-icon {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--card-accent) 40%, transparent), rgba(255, 255, 255, .06));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 6px 16px color-mix(in srgb, var(--card-accent) 25%, transparent);
+  color: #ffffff;
+}
+.game-tile-meta { color: var(--text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after,
+  .btn-primary::after,
+  .game-tile::before { animation: none; }
+}

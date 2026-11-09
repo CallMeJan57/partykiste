@@ -20,6 +20,7 @@ const CORE = [
   'css/dice.css',
   'css/coin.css',
   'css/finger.css',
+  'css/glass.css',
   'icons/icon-192.png',
   'icons/apple-touch-icon.png',
 ];
