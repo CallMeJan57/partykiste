@@ -178,7 +178,7 @@ body::after {
   backdrop-filter: var(--glass-blur);
   box-shadow: var(--glass-shadow);
 }
-.setup-card-head { color: var(--text); }
+.setup-card-head { color: color-mix(in srgb, var(--accent) 55%, #ffffff); }
 .setup-card-icon {
   width: 32px;
   height: 32px;
@@ -211,7 +211,8 @@ body::after {
 }
 
 /* ---------- Startseite ---------- */
-.hub-title .hub-letter { color: hsl(calc(250 + var(--i) * 4), 95%, 90%); }
+/* Überschrift: Buchstaben in einem Farbverlauf von Lila über Pink nach Orange */
+.hub-title .hub-letter { color: hsl(calc(265 + var(--i) * 9), 92%, 80%); }
 .hub-today { color: #f9a8d4; }
 @keyframes hub-wave {
   0%, 100% { color: #f9a8d4; transform: translateY(0); }
@@ -233,17 +234,30 @@ body::after {
 .hub-players:has(.players.is-open) { border-color: rgba(216, 180, 254, .45); }
 .hub-rule { background: rgba(255, 255, 255, .06); }
 
-.hub-section-title { color: var(--text); }
+/* Jeder Abschnitt bekommt seine eigene Farbe (der erste section-Block ist der Mitspieler-Bereich) */
+.hub-section { --section: #d8b4fe; }
+.hub-section:nth-of-type(2) { --section: #fcd34d; }
+.hub-section:nth-of-type(3) { --section: #67e8f9; }
+.hub-section:nth-of-type(4) { --section: #f9a8d4; }
+.hub-section:nth-of-type(5) { --section: #bef264; }
+.hub-section-title {
+  color: var(--section);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--section) 45%, transparent);
+}
 .hub-section-title::after {
   height: 2px;
   border-radius: 2px;
-  background: linear-gradient(90deg, rgba(216, 180, 254, .6), transparent);
+  background: linear-gradient(90deg, var(--section), transparent);
+  opacity: .7;
 }
 
 /* Glaskacheln: Farbschein des Spiels leuchtet durchs Glas, beim Antippen gibt es einen Lichtreflex */
 .game-tile {
-  background: var(--glass);
-  border: 1px solid var(--glass-edge);
+  /* farbiges Glas: getönt in der Farbe des Spiels */
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--card-accent) 34%, transparent), rgba(255, 255, 255, .04) 72%),
+    rgba(255, 255, 255, .03);
+  border: 1px solid color-mix(in srgb, var(--card-accent) 40%, var(--glass-edge));
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
   box-shadow: var(--glass-shadow);
@@ -280,15 +294,26 @@ body::after {
 }
 .game-tile:active { transform: scale(.96); }
 .game-tile-icon {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--card-accent) 40%, transparent), rgba(255, 255, 255, .06));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 6px 16px color-mix(in srgb, var(--card-accent) 25%, transparent);
-  color: #ffffff;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .24), color-mix(in srgb, var(--card-accent) 26%, transparent));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 6px 18px color-mix(in srgb, var(--card-accent) 35%, transparent);
+  color: color-mix(in srgb, var(--card-accent) 75%, #ffffff);
+  animation: glass-icon 5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -600ms);
 }
-.game-tile-meta { color: var(--text-muted); }
+@keyframes glass-icon {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-3px) rotate(-3deg); }
+}
+.game-tile-title {
+  color: color-mix(in srgb, var(--card-accent) 40%, #ffffff);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--card-accent) 40%, transparent);
+}
+.game-tile-meta { color: color-mix(in srgb, var(--card-accent) 35%, var(--text-muted)); }
 
 @media (prefers-reduced-motion: reduce) {
   body::before,
   body::after,
   .btn-primary::after,
-  .game-tile::before { animation: none; }
+  .game-tile::before,
+  .game-tile-icon { animation: none; }
 }
