@@ -1,4 +1,5 @@
 import { $, esc } from '../../core/dom.js';
+import { isPartyGame, partyFinish } from '../../core/party.js';
 import { between } from '../../core/random.js';
 import { getTeams, teamLabel, teamMember } from '../../core/teams.js';
 import { bindPlayerEditor, bindSegmented, bindTeamMode, playerEditor, rankingList, segmented, setupRow, setupScreen, splitLetters, teamModeControl } from '../../core/ui.js';
@@ -91,6 +92,7 @@ function mount(ctx) {
 
   let named = false;
   let playAs = storage.get('playAs') === 'teams' ? 'teams' : 'solo';
+  if (isPartyGame('color-match')) playAs = 'teams'; // Partyabend: immer in Teams
   let sides = [];        // im Teammodus: Teams aus core/teams.js; gewertet wird der Teamdurchschnitt
   let turn = 0;          // laufende Nummer über alle Züge
   let results = [];      // { name, percent, target, guess }
@@ -642,6 +644,7 @@ function mount(ctx) {
     if (overall >= 75) sound.great();
     else sound.good();
     $('[data-action="again"]', root).addEventListener('click', startGame);
+    partyFinish(root, 'color-match', ranked.map((entry) => [entry.name, entry.score]));
     $('[data-action="setup"]', root).addEventListener('click', showSetup);
   }
 }

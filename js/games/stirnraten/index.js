@@ -1,4 +1,5 @@
 import { $, esc } from '../../core/dom.js';
+import { isPartyGame, partyFinish } from '../../core/party.js';
 import { shuffle } from '../../core/random.js';
 import { getTeams, teamLabel, teamMember } from '../../core/teams.js';
 import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, splitLetters, teamModeControl, toggleList } from '../../core/ui.js';
@@ -68,6 +69,7 @@ function mount(ctx) {
   let rounds = ROUND_COUNTS.includes(storage.get('rounds')) ? storage.get('rounds') : '1';
   let control = CONTROLS.some((option) => option.value === storage.get('control')) ? storage.get('control') : 'tilt';
   let playAs = storage.get('playAs') === 'teams' ? 'teams' : 'solo';
+  if (isPartyGame('stirnraten')) playAs = 'teams'; // Partyabend: immer in Teams
   let players = ctx.players.get();
 
   let sides = [];       // im Teammodus: Teams aus core/teams.js
@@ -551,6 +553,7 @@ function mount(ctx) {
       fx.burst();
     }
     $('[data-action="again"]', root).addEventListener('click', startGame);
+    partyFinish(root, 'stirnraten', scores);
     $('[data-action="setup"]', root).addEventListener('click', showSetup);
   }
 }

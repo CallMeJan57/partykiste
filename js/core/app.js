@@ -18,8 +18,8 @@ const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 export function startApp({ name, games, sections = [], topbar, view }) {
   const playable = validate(games);
   const gamesById = new Map(playable.map((game) => [game.id, game]));
-  const tools = playable.filter((game) => game.tool);   // Knöpfe in der Kopfzeile statt Karten
-  const listed = playable.filter((game) => !game.tool);
+  const tools = playable.filter((game) => game.tool && !game.hidden);   // Knöpfe in der Kopfzeile statt Karten
+  const listed = playable.filter((game) => !game.tool && !game.hidden); // hidden: nur über eigenen Knopf erreichbar (Partyabend)
   const loadedStyles = new Set();
 
   let active = null;        // { dispose, game } des laufenden Spiels

@@ -26,6 +26,7 @@ import colorMatch from './color-match/index.js';
 import tabu from './tabu/index.js';
 import werwolf from './werwolf/index.js';
 import stirnraten from './stirnraten/index.js';
+import partyabend from './partyabend/index.js';
 
 // Abschnitte auf der Startseite (per id). Spiele, die hier fehlen, landen unter „Weitere Spiele“.
 export const sections = [
@@ -54,4 +55,5 @@ export const games = [
   tabu,
   werwolf,
   stirnraten,
+  partyabend,
 ];

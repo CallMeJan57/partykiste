@@ -1,4 +1,5 @@
 import { $, esc } from '../../core/dom.js';
+import { isPartyGame, partyFinish } from '../../core/party.js';
 import { shuffle } from '../../core/random.js';
 import { getTeams } from '../../core/teams.js';
 import { bindPlayerEditor, bindSegmented, bindTeamEditor, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, splitLetters, teamEditor, toggleList } from '../../core/ui.js';
@@ -449,6 +450,7 @@ function mount(ctx) {
     sound.win();
     fx.burst({ colors: winners.map((team) => team.color).concat('#ffffff', '#ffd166') });
     $('[data-action="again"]', root).addEventListener('click', startGame);
+    partyFinish(root, 'tabu', sides.map((team) => [team.name, team.score]));
     $('[data-action="setup"]', root).addEventListener('click', showSetup);
   }
 }

@@ -585,6 +585,34 @@ button.team-member {
   transform: scale(1.06);
 }
 .teams-shuffle { width: 100%; }
+
+/* Partyabend: Knopf auf den Endbildschirmen der Spiele (partyFinish() in js/core/party.js) */
+.party-continue {
+  display: grid;
+  gap: 2px;
+  background: linear-gradient(135deg, #f5c542, #ec4899 60%, #a855f7);
+  color: #ffffff;
+  box-shadow: 0 8px 28px rgba(236, 72, 153, .35);
+  animation: party-continue 2.2s ease-in-out infinite;
+}
+.party-continue small {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  opacity: .85;
+}
+@keyframes party-continue {
+  50% { transform: scale(1.02); box-shadow: 0 10px 36px rgba(236, 72, 153, .5); }
+}
+.party-again { width: 100%; }
+.party-note {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, #a855f7 15%, var(--surface));
+  font-size: 13px;
+  text-align: center;
+}
 .team-mode {
   display: grid;
   grid-template-columns: minmax(0, 1fr); /* sonst schiebt die einzeilige Teamübersicht die Karte breiter */

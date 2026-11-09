@@ -1,4 +1,5 @@
 import { $, esc } from '../../core/dom.js';
+import { isPartyGame, partyFinish } from '../../core/party.js';
 import { pick, shuffle } from '../../core/random.js';
 import { getTeams, teamLabel, teamMember } from '../../core/teams.js';
 import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupRow, setupScreen, teamModeControl, toggleList } from '../../core/ui.js';
@@ -78,6 +79,7 @@ function mount(ctx) {
   let players = ctx.players.get();
   let named = false;
   let mode = storage.get('mode') === 'teams' ? 'teams' : 'solo';
+  if (isPartyGame('blind-zeichnen')) mode = 'teams'; // Partyabend: immer in Teams
   let sides = [];     // im Teammodus: Teams aus core/teams.js, reihum dran
   let points = new Map();
   let deck = [];
@@ -534,6 +536,7 @@ function mount(ctx) {
         <button class="btn-link" type="button" data-action="setup">Einstellungen</button>
       </section>`;
     $('[data-action="again"]', root).addEventListener('click', startGame);
+    partyFinish(root, 'blind-zeichnen', points);
     $('[data-action="setup"]', root).addEventListener('click', showSetup);
   }
 }

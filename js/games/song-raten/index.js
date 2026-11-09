@@ -1,4 +1,5 @@
 import { $, esc } from '../../core/dom.js';
+import { isPartyGame, partyFinish } from '../../core/party.js';
 import { shuffle } from '../../core/random.js';
 import { getTeams, teamLabel } from '../../core/teams.js';
 import { bindPlayerEditor, bindSegmented, bindTeamMode, bindToggleList, playerEditor, rankingList, segmented, setupScreen, teamModeControl, toggleList } from '../../core/ui.js';
@@ -74,6 +75,7 @@ function mount(ctx) {
   let clip = CLIP_LENGTHS.includes(storage.get('clip')) ? storage.get('clip') : DEFAULT_CLIP;
   let players = ctx.players.get();
   let mode = storage.get('mode') === 'teams' ? 'teams' : 'solo';
+  if (isPartyGame('song-raten')) mode = 'teams'; // Partyabend: immer in Teams
   let sides = [];       // im Teammodus: Teams aus core/teams.js
   let contestants = []; // wer Punkte sammelt: Namen oder Teams
   let scores = new Map();
@@ -596,6 +598,7 @@ function mount(ctx) {
         <button class="btn-link" type="button" data-action="setup">Einstellungen</button>
       </section>`;
     $('[data-action="again"]', root).addEventListener('click', startGame);
+    partyFinish(root, 'song-raten', scores);
     $('[data-action="setup"]', root).addEventListener('click', showSetup);
   }
 }
