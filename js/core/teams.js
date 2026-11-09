@@ -20,12 +20,12 @@ export const TEAM_SIZES = [2, 3, 4, 5];       // Aufteilen nach Personen pro Tea
 export const MIN_TEAM_SIZE = 2;               // jemand erklärt oder spielt vor, mindestens eine Person rät
 export const MAX_TEAM_NAME = 20;
 
-const DEFAULTS = { split: 'teams', value: 2, mode: 'random', names: [], assignment: {} };
+const DEFAULTS = { split: 'teams', value: 2, mode: 'random', names: [], emojis: [], assignment: {} };
 
 /**
  * split: 'teams' (value = Anzahl Teams) oder 'size' (value = Personen pro Team)
  * mode: 'random' (gleich große, zufällige Teams) oder 'manual' (selbst eingeteilt)
- * names: eigene Teamnamen, leer = vorgefertigter Name; assignment: Name → Nummer des Teams
+ * names / emojis: eigene Teamnamen und -symbole, leer = vorgefertigt; assignment: Name → Nummer des Teams
  */
 export function getTeamSettings() {
   const stored = appStorage.get('teams', {});
@@ -35,6 +35,7 @@ export function getTeamSettings() {
   if (!allowed.includes(settings.value)) settings.value = allowed[0];
   if (!['random', 'manual'].includes(settings.mode)) settings.mode = DEFAULTS.mode;
   if (!Array.isArray(settings.names)) settings.names = [];
+  if (!Array.isArray(settings.emojis)) settings.emojis = [];
   if (!settings.assignment || typeof settings.assignment !== 'object') settings.assignment = {};
   return settings;
 }
@@ -79,6 +80,8 @@ export function getTeams(players = getPlayers()) {
     return {
       ...style,
       defaultName: style.name,
+      defaultEmoji: style.emoji,
+      emoji: settings.emojis[index] || style.emoji,
       name,
       members: enough ? players.filter((player) => settings.assignment[player] === index) : [],
     };
@@ -116,6 +119,29 @@ export function swapMembers(first, second) {
   const settings = getTeamSettings();
   const { assignment } = settings;
   setTeamSettings({ ...settings, assignment: { ...assignment, [first]: assignment[second], [second]: assignment[first] } });
+}
+
+// Auswahl für eigene Teamsymbole (vorgefertigte bleiben über „Standard“ erreichbar)
+export const TEAM_EMOJIS = ['🦁', '🐺', '🦊', '🐼', '🦄', '🐙', '🦈', '🐝', '🦖', '🐸', '🍕', '🌮', '🍉', '🍺', '🎸', '🚀', '👑', '💎', '🌈', '⭐', '🎯', '💀', '👽', '🤖', '🎃', '🍀', '🌶️', '🧠'];
+
+/** Eigenes Symbol für ein Team: nur das erste Zeichen, und nur wenn es ein Emoji ist. Leer = vorgefertigtes Symbol. */
+export function setTeamEmoji(index, value) {
+  const emoji = firstEmoji(value);
+  if (value && !emoji) return false;
+  const settings = getTeamSettings();
+  const emojis = [...settings.emojis];
+  emojis[index] = emoji ?? '';
+  setTeamSettings({ ...settings, emojis });
+  return true;
+}
+
+function firstEmoji(value) {
+  const text = String(value ?? '').trim();
+  if (!text) return null;
+  const first = typeof Intl !== 'undefined' && Intl.Segmenter
+    ? [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text)][0]?.segment
+    : [...text][0];
+  return /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(first ?? '') ? first : null;
 }
 
 export function setTeamName(index, name) {
