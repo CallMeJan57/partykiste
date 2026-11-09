@@ -81,6 +81,8 @@ function mount(ctx) {
   let log = [];         // { term, right } des laufenden Zugs
   let running = false;
   let answering = false; // Rückmeldung „Richtig!“/„Weiter“ läuft – kein zweites Werten
+  let paused = false;    // Abbrechen-Abfrage ist offen: Zeit steht, Kippen und Tippen zählen nicht
+  let pausedMs = 0;      // so lange war der Zug insgesamt pausiert
   let tapMode = false;  // läuft der Zug mit Tippen statt Kippen?
   let stopSensor = null;
   let turnSign = 1;     // Drehrichtung des Begriffs, wenn der Bildschirm hochkant bleibt
@@ -370,6 +372,8 @@ function mount(ctx) {
     log = [];
     running = true;
     answering = false;
+    paused = false;
+    pausedMs = 0;
     root.innerHTML = `
       <section class="screen st-play">
         <div class="st-card ${sidewaysClass()}" style="--turn: ${turnSign * 90}deg">
@@ -380,11 +384,13 @@ function mount(ctx) {
           <div class="st-fuse" aria-hidden="true"><i></i></div>
           <button class="st-zone is-skip" type="button" data-zone="skip" aria-label="Weiter"></button>
           <button class="st-zone is-right" type="button" data-zone="right" aria-label="Richtig"></button>
+          <button class="st-abort" type="button" aria-label="Zug abbrechen">✕</button>
         </div>
       </section>`;
     for (const zone of root.querySelectorAll('[data-zone]')) {
       zone.addEventListener('click', () => resolve(zone.dataset.zone));
     }
+    $('.st-abort', root).addEventListener('click', askAbort);
     if (tapMode) enableTapZones();
     showCard();
     startClock();
@@ -414,7 +420,8 @@ function mount(ctx) {
     let shown = Number(time);
     ctx.loop((now) => {
       if (!running) return false;
-      const left = Math.max(0, total - (now - started));
+      if (paused) return true;
+      const left = Math.max(0, total - (now - started - pausedMs));
       fuse.style.transform = `scaleX(${left / total})`;
       const seconds = Math.ceil(left / 1000);
       if (seconds !== shown) {
@@ -432,7 +439,7 @@ function mount(ctx) {
   }
 
   function resolve(outcome) {
-    if (!running || answering) return;
+    if (!running || answering || paused) return;
     answering = true;
     const right = outcome === 'right';
     log.push({ term: current.term, right });
@@ -455,6 +462,33 @@ function mount(ctx) {
       card.classList.remove('is-right', 'is-skip');
       showCard();
     }, fx.reducedMotion() ? 0 : FEEDBACK_MS);
+  }
+
+  // ✕ auf der Karte: Zeit anhalten und fragen – ein versehentlicher Tipp an der Stirn bricht so nichts ab
+  function askAbort() {
+    if (!running || paused) return;
+    paused = true;
+    const pausedAt = performance.now();
+    sound.tap();
+    const card = $('.st-card', root);
+    const dialog = document.createElement('div');
+    dialog.className = 'st-pause';
+    dialog.innerHTML = `
+      <p class="st-pause-title">Pause</p>
+      <button class="btn btn-primary" type="button" data-pause="resume">Weiterspielen</button>
+      <button class="btn btn-ghost" type="button" data-pause="end">Zug beenden</button>`;
+    card.append(dialog);
+    $('[data-pause="resume"]', dialog).addEventListener('click', () => {
+      pausedMs += performance.now() - pausedAt;
+      paused = false;
+      dialog.remove();
+    });
+    $('[data-pause="end"]', dialog).addEventListener('click', () => {
+      running = false;
+      paused = false;
+      endSensor();
+      showSummary();
+    });
   }
 
   function timeUp() {
