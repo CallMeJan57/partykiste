@@ -1,4 +1,5 @@
 import { $, esc } from '../../core/dom.js';
+import { saveImagesOffline } from '../../core/offline.js';
 import { shuffle } from '../../core/random.js';
 import { bindPlayerEditor, bindSegmented, bindToggleList, playerEditor, segmented, setupScreen, toggleList } from '../../core/ui.js';
 import categories from './characters.js';
@@ -89,6 +90,18 @@ function mount(ctx) {
 
   // ---------- Einstellungen ----------
 
+  // Alle Bilder im Hintergrund für offline speichern (bleiben bei Wikimedia verlinkt, landen nur im Offline-Speicher)
+  function keepImagesOffline(note) {
+    const urls = [...new Set(Object.values(images))];
+    const started = saveImagesOffline('partykiste-bilder-kmk-v1', urls, ({ done, total, finished }) => {
+      if (!note.isConnected) return;
+      if (done >= total) note.textContent = '✓ Alle Bilder auch offline verfügbar';
+      else if (finished) note.textContent = navigator.onLine === false ? `📴 ${done} von ${total} Bildern offline – der Rest folgt mit Internet` : `${done} von ${total} Bildern offline verfügbar`;
+      else note.textContent = `📶 Bilder für offline: ${done} von ${total}`;
+    });
+    if (!started) note.textContent = '';
+  }
+
   function showSetup() {
     const genderOptions = Object.entries(GENDERS).map(([value, { label }]) => ({ value, label }));
     const categoryOptions = Object.entries(categories).map(([value, category]) => ({
@@ -125,7 +138,9 @@ function mount(ctx) {
         },
       ],
       start: `<button class="btn btn-primary" type="button" data-action="start">Los geht's</button>`,
+      startNote: '<span class="kmk-offline"></span>',
     });
+    keepImagesOffline($('.kmk-offline', root));
 
     bindSegmented(root, 'gender', (value) => {
       gender = value;
