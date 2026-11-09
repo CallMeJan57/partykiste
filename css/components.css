@@ -574,12 +574,21 @@
   background: color-mix(in srgb, var(--team) 30%, transparent);
   box-shadow: inset 0 0 0 2px var(--team);
 }
+.team-emoji-grid button:first-child {
+  position: relative;
+  padding-bottom: 9px;
+}
+/* „Standard“ mittig unter dem vorgegebenen Symbol – ragt bei schmalen Feldern gleichmäßig nach beiden Seiten */
 .team-emoji-grid button:first-child::after {
   content: 'Standard';
-  display: block;
-  margin-top: -4px;
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
   font-size: 8px;
   font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
   color: var(--text-muted);
 }
 .team-emoji-input {
